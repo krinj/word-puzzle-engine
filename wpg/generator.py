@@ -1,27 +1,45 @@
+import sqlite3
+
 from wpg import util
-from wpg.bucket import Bucket
 from wpg.puzzle import Puzzle
 from wpg.tier import TierManager
 from wpg.word import Word
+
 import random
 import csv
 import os
 import shutil
+import pickle
 
 
 class Generator:
-    def __init__(self, output_dir="cookie/"):
+    def __init__(self):
         self.min_word_length = 2
         self.max_word_length = 7
         self.tier_manager = TierManager(8)
         self.block_id = 0
+        self.output_dir = "output/bin/"
+        self._setup_output_dir()
+
+    def set_output_dir(self, output_dir):
         self.output_dir = "output/" + output_dir
-        self.setup_output_dir()
+        self._setup_output_dir()
+
+    def import_data(self, input_db):
+        conn = sqlite3.connect(input_db)
+        cursor = conn.cursor()
+
+        results = cursor.execute("SELECT * FROM word")
+        for row in results:
+            self.add_word(row[0], row[1])
+
+        conn.commit()
+        conn.close()
 
     def add_word(self, string, score=0):
         if len(string) < 2 or len(string) > 7:
             return
-        word = Word(string, score)
+        word = Word(string, 1, score)
         bucket = self.get_bucket(word.key, True)
         bucket.add_word(word)
 
@@ -30,14 +48,22 @@ class Generator:
 
     def calibrate_buckets(self):
         self.tier_manager.link_sub_buckets()
-        pass
-
-    def clear(self):
-        pass
 
     def reset_flags(self):
         self.block_id = 0
         self.tier_manager.reset()
+
+    # ---------------------------------------------------------------
+
+    def save(self, path="save/generator_data"):
+        file_object = open(path, 'wb')
+        pickle.dump(self.tier_manager, file_object)
+        file_object.close()
+
+    def load(self, path="save/generator_data"):
+        file_object = open(path, 'r')
+        self.tier_manager = pickle.load(file_object)
+        file_object.close()
 
     # ---------------------------------------------------------------
 
@@ -63,9 +89,9 @@ class Generator:
             csv_writer = csv.writer(file, delimiter=',')
             csv_writer.writerow(['key', 'words', 'sub_words'])
             for puzzle in puzzles:
-                key = puzzle.key
-                word_joined = " ".join(puzzle.words)
-                csv_writer.writerow([puzzle.key, word_joined])
+                key = unicode(puzzle.key).encode("utf-8")
+                word_joined = " ".join([unicode(w).encode("utf-8") for w in puzzle.words])
+                csv_writer.writerow([key, word_joined])
 
     def generate_block_file_name(self, block_id):
         return "puzzle_block_{}.csv".format(block_id)
@@ -73,9 +99,15 @@ class Generator:
     def make_single_puzzle(self, word_length=5, percentile=0.3):
         bucket = self.get_random_bucket(word_length, percentile)
         bucket.active = False
-        # self.analyse(bucket.key)
         puzzle = Puzzle(bucket.key, bucket.get_word_values())
         return puzzle
+
+    def get_single_puzzle(self, word_length=5, percentile=0.3):
+        puzzle = self.make_single_puzzle(word_length, percentile)
+        key = unicode(puzzle.key).encode("utf-8")
+        word_joined = " ".join([unicode(w).encode("utf-8") for w in puzzle.words])
+        print("KEY: {}".format(key))
+        print("WORDS: {}".format(word_joined))
 
     def get_random_bucket(self, key_length=5, percentile=0.3):
         tier = self.tier_manager.get_tier(key_length)
@@ -85,7 +117,7 @@ class Generator:
         bucket = random.choice(sub_list)
         return bucket
 
-    def setup_output_dir(self):
+    def _setup_output_dir(self):
         try:
             shutil.rmtree(self.output_dir)
         except:
@@ -115,14 +147,14 @@ class Generator:
         return buckets
 
     def analyse(self, string):
-        print("Analysing String: {}".format(string))
+        print(u"Analysing String: {}".format(string))
 
         key = (util.get_key(string))
-        print("Key: {}".format(key))
+        print(u"Key: {}".format(key))
 
         bucket = self.get_bucket(key)
         print("Sub Bucket Count: {}".format(len(bucket.sub_buckets)))
 
         words = bucket.get_word_values()
         print("Word Count: {}".format(len(words)))
-        print("Words: {}".format(", ".join(words)))
+        print(u"Words: {}".format(", ".join(words)))

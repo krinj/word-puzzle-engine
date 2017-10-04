@@ -24,16 +24,16 @@ class Bucket:
 
     def _add_word_score(self, word):
         self.sub_word_count += 1
-        self.sub_word_score += len(word.value)
+        self.sub_word_score += len(word.literal)
 
     def get_word_values(self):
         out_words = []
         for s_bucket in self.sub_buckets:
             for word in s_bucket.words:
-                out_words.append(word.value)
+                out_words.append(word.literal)
 
         for word in self.words:
-            out_words.append(word.value)
+            out_words.append(word.literal)
 
         out_words.sort(key=lambda item: (len(item), item))
         return out_words

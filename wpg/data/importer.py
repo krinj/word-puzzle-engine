@@ -1,80 +1,82 @@
 import sqlite3
 
-from wpg.data.symbol import Symbol, SymbolString
+from wpg import util
+from wpg.word import Word
 
 
 class Importer:
     def __init__(self):
-        self.symbols = []
-        self.symbol_strings = []
         pass
 
-    def create_db(self, db_path, symbol_strings):
+    def create_db(self, db_path, words):
         conn = sqlite3.connect(db_path)
         cursor = conn.cursor()
 
-        cursor.execute("DROP TABLE IF EXISTS symbol_string")
-        cursor.execute("CREATE TABLE symbol_string (key VARCHAR PRIMARY KEY, score INT)")
+        cursor.execute("DROP TABLE IF EXISTS word")
+        cursor.execute("CREATE TABLE word (key TEXT PRIMARY KEY, score INT)")
 
-        for symbol_string in symbol_strings:
-            query = "SELECT EXISTS(SELECT 1 FROM symbol_string WHERE key='{}' LIMIT 1)".format(symbol_string.literal)
+        for word in words:
+            literal = word.literal
+            score = word.score
+            query = "SELECT EXISTS(SELECT 1 FROM word WHERE key='{}' LIMIT 1)".format(literal)
             exists = cursor.execute(query).fetchone()[0]
             if exists == 0:
-                query = "INSERT INTO symbol_string (key, score) VALUES ('{}', {})".format(symbol_string.literal, 0)
+                query = "INSERT INTO word (key, score) VALUES ('{}', {})".format(literal, score)
                 cursor.execute(query)
 
         conn.commit()
         conn.close()
 
-    # def set_symbols(self, file_path):
-    #     print("Setting Symbols")
-    #     word_file = open(file_path, "r")
-    #     self.symbols = []
-    #     for line in word_file:
-    #         word = Importer.strip(line, ['\n', '\r', '\t', '.'])
-    #         symbol = Symbol(word)
-    #         self.symbols.append(symbol)
-    #
-    #     for s in self.symbols:
-    #         print("ID: {}, VALUE: {}, REP: {}".format(s.id, s.value, s.get_rep()))
-    #
+    def _get_words(self, db_path):
+        words = []
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
 
+        results = cursor.execute("SELECT * FROM word")
+        for row in results:
+            word = Word(row[0], 1, row[1])
+            words.append(word)
 
-    def extract_words(self, file_path, max_symbols=8, divide=1, max_words=5):
+        conn.close()
+        return words
+
+    def extract_literals(self, file_path):
+        words = self.extract_words(file_path, divide=1)
+        return [word.literal for word in words]
+
+    def extract_words(self, file_path, ban_list=None, db_path=None, delimiter='\t', max_symbols=8, divide=1, max_words=0):
         word_file = open(file_path, "r")
         i = 0
-        symbol_strings = []
+        words = []
+        ban_count = 0
         for line in word_file:
-            literal = Importer.strip(line, ['\n', '\r', '\t', '.'])
-            if divide > 0:
-                word = Importer.divide_string(literal, divide)
-            if len(word) > max_symbols:
+            units = line.split(delimiter)
+            score = 0
+
+            if len(units) > 1:
+                score = int(util.strip(units[1], ['\n', '\r', '\t', '.']))
+
+            literal = util.strip(units[0], ['\n', '\r', '\t', '.'])
+
+            if ban_list is not None and literal in ban_list:
+                ban_count += 1
                 continue
 
-            sym_str = SymbolString(literal, word)
-            symbol_strings.append(sym_str)
+            if divide > 0:
+                word_array = util.divide_string(literal, divide)
+
+            if len(word_array) > max_symbols:
+                continue
+
+            word = Word(literal, divide, score)
+            words.append(word)
             i += 1
             if max_words != 0 and i > max_words:
                 break
 
-        for sym_str in symbol_strings:
-            print(sym_str.literal)
-            print(sym_str.array)
-            print("")
+        if db_path is not None:
+            self.create_db(db_path, words)
 
-        return symbol_strings
-
-    @staticmethod
-    def divide_string(string, n=3):
-        # Returns an array of strings, divided by n-length from the original string.
-        return [string[i:i + n] for i in range(0, len(string), n)]
-
-    @staticmethod
-    def strip(string, char):
-        for c in char:
-            string = string.replace(c, "")
-        return string
-
-
-
-        # Use this class to import data from a given text file into a SQLlite format. We will use the SQLlite from here on.
+        if ban_count > 0:
+            print("Words Banned: {}".format(ban_count))
+        return words
