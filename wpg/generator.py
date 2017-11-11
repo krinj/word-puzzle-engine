@@ -12,6 +12,13 @@ import shutil
 import pickle
 
 
+class PuzzleBlock:
+    def __init__(self, block_id, puzzles, name):
+        self.id = block_id
+        self.puzzles = puzzles
+        self.name = name
+
+
 class Generator:
     def __init__(self):
         self.min_word_length = 2
@@ -67,7 +74,7 @@ class Generator:
 
     # ---------------------------------------------------------------
 
-    def make_puzzle_block(self, block_def, block_id=0, percentile=0.3):
+    def make_puzzle_block(self, name, block_def, block_id=0, percentile=0.3):
         if block_def is None:
             raise Exception("Must send in a dict for block_def")
         if block_id == 0:
@@ -81,14 +88,17 @@ class Generator:
             for i in range(i_count):
                 puzzle = self.make_single_puzzle(k_count, percentile)
                 puzzles.append(puzzle)
-        self.write_puzzles_to_csv(block_id, puzzles)
 
-    def write_puzzles_to_csv(self, block_id, puzzles):
-        file_name = self.output_dir + self.generate_block_file_name(block_id)
+        puzzle_block = PuzzleBlock(block_id, puzzles, name)
+        return puzzle_block
+
+    def write_puzzle_block_to_csv(self, puzzle_block):
+        file_name = self.output_dir + self.generate_block_file_name(puzzle_block.id)
         with open(file_name, 'wb') as file:
             csv_writer = csv.writer(file, delimiter=',')
+            csv_writer.writerow([puzzle_block.name])
             csv_writer.writerow(['key', 'words', 'sub_words'])
-            for puzzle in puzzles:
+            for puzzle in puzzle_block.puzzles:
                 key = unicode(puzzle.key).encode("utf-8")
                 word_joined = " ".join([unicode(w).encode("utf-8") for w in puzzle.words])
                 csv_writer.writerow([key, word_joined])

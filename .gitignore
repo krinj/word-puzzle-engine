@@ -4,3 +4,5 @@ output/
 \.ipynb_checkpoints/
 
 \.idea/
+
+*.pyc
