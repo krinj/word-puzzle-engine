@@ -74,7 +74,7 @@ class Generator:
 
     # ---------------------------------------------------------------
 
-    def make_puzzle_block(self, name, block_def, block_id=0, percentile=0.3):
+    def make_puzzle_block(self, name, block_def, block_id=0, percentile=0.3, collision_cap=2, batch=10):
         if block_def is None:
             raise Exception("Must send in a dict for block_def")
         if block_id == 0:
@@ -82,12 +82,16 @@ class Generator:
             block_id = self.block_id
 
         puzzles = []
+        collision_words = []
         for key in block_def:
             k_count = key
             i_count = block_def[key]
             for i in range(i_count):
-                puzzle = self.make_single_puzzle(k_count, percentile)
+                puzzle = self.make_single_puzzle_sans_collision(k_count, percentile, collision_words, batch)
                 puzzles.append(puzzle)
+                collision_words.insert(0, puzzle.key)
+                if len(collision_words) > collision_cap:
+                    collision_words.pop()
 
         puzzle_block = PuzzleBlock(block_id, puzzles, name)
         return puzzle_block
@@ -105,6 +109,28 @@ class Generator:
 
     def generate_block_file_name(self, block_id):
         return "puzzle_block_{}.csv".format(block_id)
+
+    def make_single_puzzle_sans_collision(self, word_length=5, percentile=0.3, words=[], batch=10):
+        # Generate [batch] number of random puzzles, and pick the one with the least collisions to the words.
+
+        if len(words) == 0:
+            return self.make_single_puzzle(word_length, percentile)
+
+        # Create n puzzles and find the score for each one.
+        best_score = 9999
+        best_bucket = 0
+        for i in range(batch):
+            bucket_score = 0
+            bucket = self.get_random_bucket(word_length, percentile)
+            for word in words:
+                bucket_score += util.lexi_collisions(word, bucket.key)
+            if bucket_score < best_score:
+                best_bucket = bucket
+                best_score = bucket_score
+
+        best_bucket.active = False
+        puzzle = Puzzle(best_bucket.key, best_bucket.get_word_values())
+        return puzzle
 
     def make_single_puzzle(self, word_length=5, percentile=0.3):
         bucket = self.get_random_bucket(word_length, percentile)

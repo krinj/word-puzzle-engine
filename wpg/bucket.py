@@ -24,7 +24,10 @@ class Bucket:
 
     def _add_word_score(self, word):
         self.sub_word_count += 1
-        self.sub_word_score += len(word.literal)
+        if len(word.literal) > 3:
+            self.sub_word_score += 2
+        else:
+            self.sub_word_score += 1
 
     def get_word_values(self):
         out_words = []

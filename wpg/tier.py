@@ -37,7 +37,7 @@ class TierManager:
         self.tiers = []
         for i in range(n_tiers):
             tier = Tier(i)
-            if i > 4:
+            if i > 3:
                 tier.min_sub_tier_size = 3
             else:
                 tier.min_sub_tier_size = 2
