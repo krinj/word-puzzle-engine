@@ -1,0 +1,23 @@
+Krin's Word Sorter!
+
+----------------------------------------------
+
+To load a new input dictionary:
+python wp_new.py [input_path] [save_path] [max_count]
+
+input_path: The name (or path) to the plaintext file to load the words from.
+save_path: The name (or path) of a file to save the database and text to.
+max_count: (Optional) Words beyond this value will be eliminated from the import.
+
+e.g.
+python wp_new.py demo_dict save_dict 5
+
+----------------------------------------------
+
+To load from an existing DB file:
+python wp_load.py [save_path]
+
+save_path: The name (or path) of a DB file to load the database from.
+
+e.g.
+python wp_load.py save_dict
