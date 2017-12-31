@@ -1,15 +1,14 @@
-import sqlite3
-
-from wpg import util
-from wpg.puzzle import Puzzle
-from wpg.tier import TierManager
-from wpg.word import Word
-
-import random
 import csv
 import os
-import shutil
 import pickle
+import random
+import shutil
+import sqlite3
+
+from wpg.puzzle import Puzzle
+from wpg.tier import TierManager
+from wpg.utils import util
+from wpg.word import Word
 
 
 class PuzzleBlock:

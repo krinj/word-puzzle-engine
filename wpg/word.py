@@ -1,4 +1,4 @@
-from wpg import util
+from wpg.utils import util
 
 
 class Word:

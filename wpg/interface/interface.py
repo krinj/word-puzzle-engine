@@ -1,6 +1,6 @@
 import os
 
-from wpg.engine import Engine
+from wpg.engine.engine import Engine
 from wpg.interface.color import Color
 from wpg.interface.menu import Menu
 
@@ -246,15 +246,19 @@ class Interface:
     def cmd_load_db(self, args):
         file_path = args[0]
         print("Load DB: {}".format(file_path))
+        self.engine.load_db(file_path)
 
     def cmd_load_txt(self, args):
         file_path = args[0]
+        self.engine.load_txt(file_path)
         print("Load Text: {}".format(file_path))
 
     def cmd_save(self):
+        self.engine.save()
         print("Save DB")
 
     def cmd_info(self):
+        self.engine.print_info()
         print("Info")
 
     # ==================================================================================================================

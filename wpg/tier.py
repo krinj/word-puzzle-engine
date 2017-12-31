@@ -1,6 +1,7 @@
-from wpg import util
-from wpg.bucket import Bucket
 import time
+
+from wpg.bucket import Bucket
+from wpg.utils import util
 
 
 class Tier:

@@ -1,6 +1,6 @@
 import sqlite3
 
-from wpg import util
+from wpg.utils import util
 from wpg.word import Word
 
 
