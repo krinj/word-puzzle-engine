@@ -306,7 +306,8 @@ class WordSorter:
                 query = "INSERT INTO word (key, verified, rare) VALUES ('{}', {}, {})"\
                     .format(literal, int(verified), int(rare))
                 cursor.execute(query)
-                text_file.write(literal + "\n")
+                if int(rare) == 0:
+                    text_file.write(literal + "\n")
 
         conn.commit()
         conn.close()
