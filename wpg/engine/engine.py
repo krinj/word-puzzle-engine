@@ -1,4 +1,5 @@
 from wpg.data.data_manager import DataManager
+from wpg.engine.editor import Editor
 from wpg.interface.color import Color
 
 
@@ -8,12 +9,16 @@ class Engine:
 
         # Logic Modules
         self.data_manager = DataManager()
-        self.editor = None
+        self.editor = Editor()
         self.generator = None
 
         # State Data
         self.db_path = None
         self.words = []
+
+    # ==================================================================================================================
+    # Data Manager
+    # ==================================================================================================================
 
     def load_db(self, file_path):
         self.db_path = file_path
@@ -46,6 +51,28 @@ class Engine:
             self._sort_words()
             print("Words Loaded {}".format(len(self.words)))
 
+    # ==================================================================================================================
+    # Editor
+    # ==================================================================================================================
+
+    def add(self, literals):
+        self.editor.add(self.words, literals)
+
+    def remove(self, literals):
+        self.editor.remove(self.words, literals)
+
+    def verify(self):
+        self.editor.run_verify(self.words)
+
+    # ==================================================================================================================
+    # Generator
+    # ==================================================================================================================
+
+    
+
+    # ==================================================================================================================
+    # Utils
+    # ==================================================================================================================
+
     def _sort_words(self):
         self.words.sort(key=lambda w: w.literal)
-

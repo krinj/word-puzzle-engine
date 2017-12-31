@@ -267,12 +267,18 @@ class Interface:
 
     def cmd_add(self, args):
         print("Add: {}".format(args))
+        self.engine.add(args)
 
     def cmd_remove(self, args):
         print("Remove: {}".format(args))
+        self.engine.remove(args)
 
     def cmd_verify(self):
         print("Verify")
+        self.clear_terminal()
+        self.engine.verify()
+        self.clear_terminal()
+        self.show_instructions = True
 
     # ==================================================================================================================
     # Generator Commands
