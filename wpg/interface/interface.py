@@ -19,7 +19,9 @@ class Interface:
         self.menu_data = None
 
         # Initialize Commands.
+        self.all_commands = []
         self.initialize_commands()
+
 
     # ==================================================================================================================
     # Initialize
@@ -30,6 +32,12 @@ class Interface:
         self.initialize_data_menu()
         self.initialize_editor_menu()
         self.initialize_generator_menu()
+
+        self.all_commands = []
+        all_menus = [self.menu_main, self.menu_editor, self.menu_data, self.menu_generator]
+        for menu in all_menus:
+            for command in menu.commands:
+                self.all_commands.append(command)
         self.current_menu = self.menu_main
 
     def initialize_main_menu(self):
@@ -121,7 +129,7 @@ class Interface:
             key="single",
             desc_text="Generate a single puzzle for the given letters.",
             action=self.cmd_single,
-            usage_text="$ [num_of_letters]"
+            usage_text="$ [num_of_letters] [num_of_puzzles]"
         )
         self.menu_generator.add_command(
             key="inspect",
@@ -190,7 +198,7 @@ class Interface:
 
     def execute_input_command(self, key, args):
         command_found = False
-        for command in self.current_menu.commands:
+        for command in self.all_commands:
             if key == command.key:
                 # Valid action found.
                 command_found = True
@@ -236,6 +244,7 @@ class Interface:
         self._go_to_menu(self.menu_main)
 
     def cmd_exit(self):
+        self.cmd_save()
         self.clear_terminal()
         exit(1)
 
@@ -245,36 +254,29 @@ class Interface:
 
     def cmd_load_db(self, args):
         file_path = args[0]
-        print("Load DB: {}".format(file_path))
         self.engine.load_db(file_path)
 
     def cmd_load_txt(self, args):
         file_path = args[0]
         self.engine.load_txt(file_path)
-        print("Load Text: {}".format(file_path))
 
     def cmd_save(self):
         self.engine.save()
-        print("Save DB")
 
     def cmd_info(self):
         self.engine.print_info()
-        print("Info")
 
     # ==================================================================================================================
     # Editor Commands
     # ==================================================================================================================
 
     def cmd_add(self, args):
-        print("Add: {}".format(args))
         self.engine.add(args)
 
     def cmd_remove(self, args):
-        print("Remove: {}".format(args))
         self.engine.remove(args)
 
     def cmd_verify(self):
-        print("Verify")
         self.clear_terminal()
         self.engine.verify()
         self.clear_terminal()
@@ -286,11 +288,16 @@ class Interface:
 
     def cmd_single(self, args):
         n = int(args[0])
-        print("Single: {}".format(n))
+        t = 1
+        if len(args) > 1:
+            t = int(args[1])
+
+        for i in range(t):
+            self.engine.generate_single(n)
 
     def cmd_inspect(self, args):
         word = args[0]
-        print("Inspect: {}".format(word))
+        self.engine.inspect(word)
 
     def cmd_generate(self):
-        print("Generate")
+        self.engine.generate()
