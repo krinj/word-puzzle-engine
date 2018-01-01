@@ -152,8 +152,8 @@ class Interface:
             self.run_select_mode()
 
     def show_header(self):
-        print("Word Puzzle Engine {}".format(Color.set_green("1.0")))
-        print("Loaded Database: {}".format(Color.set_green("None")))
+        print("Word Puzzle Engine {}".format(Color.set_green(str(self.engine.version))))
+        print("Loaded Database: {}".format(Color.set_green(str(self.engine.db_path))))
         print("Current Mode: {}".format(Color.set_green(self.current_menu.name)))
         print("--------------------------------------")
         print
@@ -255,10 +255,12 @@ class Interface:
     def cmd_load_db(self, args):
         file_path = args[0]
         self.engine.load_db(file_path)
+        self.show_instructions = True
 
     def cmd_load_txt(self, args):
         file_path = args[0]
         self.engine.load_txt(file_path)
+        self.show_instructions = True
 
     def cmd_save(self):
         self.engine.save()

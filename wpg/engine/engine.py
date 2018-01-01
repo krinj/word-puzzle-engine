@@ -11,6 +11,7 @@ class Engine:
         self.data_manager = DataManager()
         self.editor = Editor()
         self.generator = Generator()
+        self.version = 1.0
 
         # State Data
         self.db_path = None
