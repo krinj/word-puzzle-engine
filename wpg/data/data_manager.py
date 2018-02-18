@@ -8,12 +8,12 @@ class DataManager:
     def __init__(self):
         pass
 
-    def load_txt(self, file_path, max_count=7):
+    def load_txt(self, file_path, strict=True, min_count=0, max_count=8):
 
         if not self._check_if_exists(file_path):
             return None
 
-        words = self._extract_words(file_path, max_symbols=max_count)
+        words = self._extract_words(file_path, strict=strict, min_symbols=min_count, max_symbols=max_count)
         return words
 
     def load_db(self, file_path):
@@ -92,7 +92,7 @@ class DataManager:
             return False
         return True
 
-    def _extract_words(self, file_path, delimiter='\t', max_symbols=8):
+    def _extract_words(self, file_path, delimiter='\t', strict=True, min_symbols=0, max_symbols=8):
 
         word_file = open(file_path, "r")
         words = []
@@ -100,15 +100,35 @@ class DataManager:
         for line in word_file:
 
             units = line.split(delimiter)
+
+            # Eliminate proper nouns, or any words with non-alphabet characters.
+            if strict and not self._is_valid(units):
+                continue
+
+            # Strip away the crap.
             literal = self._strip(units[0], ['\n', '\r', '\t', '.', '"', "'", "-", "&"])
 
-            if len(literal) > max_symbols:
+            # Check if the length of the word is within range
+            if len(literal) > max_symbols or len(literal) < min_symbols:
                 continue
 
             word = Word(literal.lower())
             words.append(word)
 
         return words
+
+    @staticmethod
+    def _is_valid(literal):
+        """ Check to see if this word is valid, from a strict grading point of view. """
+        ban_list = ['.', '"', "'", "-", "&"]
+        for i in ban_list:
+            if i in literal:
+                return False
+
+        if literal[0].isupper():
+            return False
+
+        return True
 
     @staticmethod
     def _strip(string, char):

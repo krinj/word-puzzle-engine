@@ -22,7 +22,6 @@ class Interface:
         self.all_commands = []
         self.initialize_commands()
 
-
     # ==================================================================================================================
     # Initialize
     # ==================================================================================================================
@@ -74,8 +73,14 @@ class Interface:
         self.menu_data.add_command(
             key="load_txt",
             desc_text="Create a new database from a text file.",
-            usage_text="$ [file_path]",
+            usage_text="$ [file_path] [min_letters] [max_letters] [strict (1 or 0)]",
             action=self.cmd_load_txt
+        )
+        self.menu_data.add_command(
+            key="merge_txt",
+            desc_text="Merges the words in a text file to this database.",
+            usage_text="$ [file_path] [min_letters] [max_letters] [strict (1 or 0)]",
+            action=self.cmd_merge_txt
         )
         self.menu_data.add_command(
             key="info",
@@ -264,9 +269,13 @@ class Interface:
         self.show_instructions = True
 
     def cmd_load_txt(self, args):
-        file_path = args[0]
-        self.engine.load_txt(file_path)
+        file_name, min_letters, max_letters, strict = self._get_txt_load_arguments(args)
+        self.engine.load_txt(file_name, strict=strict, min_count=min_letters, max_count=max_letters)
         self.show_instructions = True
+
+    def cmd_merge_txt(self, args):
+        file_name, min_letters, max_letters, strict = self._get_txt_load_arguments(args)
+        self.engine.merge_txt(file_name, strict=strict, min_count=min_letters, max_count=max_letters)
 
     def cmd_save(self):
         self.engine.save()
@@ -274,6 +283,30 @@ class Interface:
     def cmd_info(self):
         self.engine.print_info()
 
+    @staticmethod
+    def _get_txt_load_arguments(args):
+
+        min_letters = 0
+        max_letters = 8
+        strict = True
+        file_name = args[0]
+
+        if len(args) > 1:
+            min_letters = int(args[1])
+
+        if len(args) > 2:
+            max_letters = int(args[2])
+
+        if len(args) > 3:
+            strict = bool(int(args[3]))
+
+        print("Loading File: {}".format(file_name))
+        print("Min Letters: {}".format(min_letters))
+        print("Max Letters: {}".format(max_letters))
+        print("Strict Mode: {}".format(strict))
+        print("")
+
+        return file_name, min_letters, max_letters, strict
     # ==================================================================================================================
     # Editor Commands
     # ==================================================================================================================

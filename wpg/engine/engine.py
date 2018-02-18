@@ -11,7 +11,7 @@ class Engine:
         self.data_manager = DataManager()
         self.editor = Editor()
         self.generator = Generator()
-        self.version = 2.0
+        self.version = 2.1
 
         # State Data
         self.db_path = None
@@ -34,11 +34,22 @@ class Engine:
         self.data_manager.save(self.words, self.db_path)
         print("Database Saved!")
 
-    def load_txt(self, file_path):
+    def load_txt(self, file_path, strict, min_count, max_count):
         self.db_path = None
-        self._set_words(self.data_manager.load_txt(file_path))
+        self._set_words(self.data_manager.load_txt(file_path, strict=strict, min_count=min_count, max_count=max_count))
         self.words_dirty = True
         self.save()
+
+    def merge_txt(self, file_path, strict, min_count, max_count):
+        loaded_words = self.data_manager.load_txt(file_path, strict=strict, min_count=min_count, max_count=max_count)
+        added_words = 0
+        for loaded_word in loaded_words:
+            if not any(word.literal == loaded_word.literal for word in self.words):
+                self.words.append(loaded_word)
+                added_words += 1
+
+        self.words_dirty = True
+        print("Words Added: {}".format(added_words))
 
     def print_info(self):
         word_count = len(self.words)
@@ -59,7 +70,7 @@ class Engine:
         if words is not None:
             self.words = words
             self._sort_words()
-            print("Words Loaded {}".format(len(self.words)))
+            print("Words Loaded: {}".format(len(self.words)))
 
     # ==================================================================================================================
     # Editor
