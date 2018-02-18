@@ -108,6 +108,12 @@ class Interface:
             action=self.cmd_remove
         )
         self.menu_editor.add_command(
+            key="hide",
+            desc_text="Add the word(s) to the database, and set them to hidden.",
+            usage_text="$ [word]",
+            action=self.cmd_hide
+        )
+        self.menu_editor.add_command(
             key="verify",
             desc_text="Enter the verification mode.",
             action=self.cmd_verify
@@ -277,6 +283,9 @@ class Interface:
 
     def cmd_remove(self, args):
         self.engine.remove(args)
+
+    def cmd_hide(self, args):
+        self.engine.hide(args)
 
     def cmd_verify(self):
         self.clear_terminal()

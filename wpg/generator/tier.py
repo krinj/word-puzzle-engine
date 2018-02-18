@@ -34,7 +34,7 @@ class Tier:
 
 
 class TierManager:
-    def __init__(self, n_tiers=7):
+    def __init__(self, n_tiers=9):
         self.tiers = []
         self.n_tiers = n_tiers
         self.create_tiers()
@@ -47,7 +47,9 @@ class TierManager:
         self.tiers = []
         for i in range(self.n_tiers):
             tier = Tier(i)
-            if i > 5:
+            if i > 6:
+                tier.min_sub_tier_size = 5
+            elif i > 5:
                 tier.min_sub_tier_size = 4
             elif i > 3:
                 tier.min_sub_tier_size = 3

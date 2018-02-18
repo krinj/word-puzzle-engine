@@ -11,7 +11,7 @@ class Engine:
         self.data_manager = DataManager()
         self.editor = Editor()
         self.generator = Generator()
-        self.version = 1.0
+        self.version = 2.0
 
         # State Data
         self.db_path = None
@@ -43,12 +43,16 @@ class Engine:
     def print_info(self):
         word_count = len(self.words)
         verified_count = sum(w.verified is True for w in self.words)
+        valid_count = sum(w.valid is True for w in self.words)
+        hidden_count = sum(w.hidden is True for w in self.words)
         unverified_count = word_count - verified_count
         print
         print("Database Status [{}]:".format(self.db_path))
         print("Number of Words: {}".format(word_count))
+        print("Valid Words: {}".format(valid_count))
         print("Verified Words: {}".format(verified_count))
         print("Unverified Words: {}".format(unverified_count))
+        print("Hidden Words: {}".format(hidden_count))
         print
 
     def _set_words(self, words):
@@ -73,7 +77,11 @@ class Engine:
         self.editor.run_verify(self.words)
         self.words_dirty = True
 
-        # ==================================================================================================================
+    def hide(self, literals):
+        self.editor.hide(self.words, literals)
+        self.words_dirty = True
+
+    # ==================================================================================================================
     # Generator
     # ==================================================================================================================
 

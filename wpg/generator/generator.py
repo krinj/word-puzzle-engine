@@ -17,7 +17,7 @@ class PuzzleBlock:
 
 class Generator:
     def __init__(self):
-        self.tier_manager = TierManager(8)
+        self.tier_manager = TierManager(9)
         self.block_id = 0
         self.output_dir = None
 
@@ -28,9 +28,10 @@ class Generator:
     def calibrate(self, words):
         self.tier_manager.clear()
         for word in words:
-            bucket = self.get_bucket(word.key, True)
-            if bucket is not None:
-                bucket.add_word(word)
+            if word.verified and word.valid and not word.hidden:
+                bucket = self.get_bucket(word.key, True)
+                if bucket is not None:
+                    bucket.add_word(word)
         self.calibrate_buckets()
 
     def get_bucket(self, key, create=False):

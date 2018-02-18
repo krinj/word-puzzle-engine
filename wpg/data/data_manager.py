@@ -32,10 +32,13 @@ class DataManager:
             # Copy the data from the tables.
             literal = row[0]
             verified = bool(row[1])
+            hidden = bool(row[2])
+            # valid = bool(row[3])
 
             # Create the word object.
             word = Word(literal)
             word.verified = verified
+            word.hidden = hidden
             words.append(word)
 
         # self.sort_words()
@@ -54,18 +57,24 @@ class DataManager:
         cursor = conn.cursor()
 
         cursor.execute("DROP TABLE IF EXISTS word")
-        cursor.execute("CREATE TABLE word (key TEXT PRIMARY KEY, verified INT)")
+        cursor.execute("CREATE TABLE word (key TEXT PRIMARY KEY, verified INT, hidden INT, valid INT)")
 
         for word in words:
+
             literal = word.literal
             verified = word.verified
+            hidden = word.hidden
+            valid = word.valid
+
             query = "SELECT EXISTS(SELECT 1 FROM word WHERE key='{}' LIMIT 1)".format(literal)
             exists = cursor.execute(query).fetchone()[0]
             if exists == 0:
-                query = "INSERT INTO word (key, verified) VALUES ('{}', {})" \
-                    .format(literal, int(verified))
+                query = "INSERT INTO word (key, verified, hidden, valid) VALUES ('{}', {}, {}, {})" \
+                    .format(literal, int(verified), int(hidden), int(valid))
                 cursor.execute(query)
-                text_file.write(literal + "\n")
+
+                if word.valid and word.verified:
+                    text_file.write(literal + "\n")
 
         conn.commit()
         conn.close()
