@@ -33,12 +33,13 @@ class DataManager:
             literal = row[0]
             verified = bool(row[1])
             hidden = bool(row[2])
-            # valid = bool(row[3])
+            valid = bool(row[3])
 
             # Create the word object.
             word = Word(literal)
             word.verified = verified
             word.hidden = hidden
+            word.valid = valid
             words.append(word)
 
         # self.sort_words()
