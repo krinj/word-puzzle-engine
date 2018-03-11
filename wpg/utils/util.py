@@ -25,22 +25,11 @@ def strip(string, char):
     return string
 
 
-def lexi_collisions(word1, word2):
-    # Find the number of duplicate letters in the two words.
-    copy_word1 = [x for x in word1]
-    copy_word2 = [x for x in word2]
+def lexi_collisions(first_bucket, second_bucket):
+    # Find the number of duplicate words in the two words.
     collisions = 0
-    for i in copy_word1:
-        if i in copy_word2:
-            copy_word2.remove(i)
-            collisions += _get_collision_score(i)
+    for word1 in first_bucket.words:
+        for word2 in second_bucket.words:
+            if word1 == word2:
+                collisions += 1
     return collisions
-
-
-def _get_collision_score(letter):
-    # TODO: Adjust this for other alphabets.
-    # Give lower points for vowels because they are so common.
-    if letter in "aeiou":
-        return 1
-    else:
-        return 2

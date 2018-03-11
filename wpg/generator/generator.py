@@ -45,7 +45,7 @@ class Generator:
         self.block_id = 0
         self.tier_manager.reset()
 
-    def make_puzzle_block(self, name, block_def, block_id=0, percentile=0.3, collision_cap=2, batch=10):
+    def make_puzzle_block(self, name, block_def, block_id=0, percentile=0.5, collision_cap=3, batch=10):
         if block_def is None:
             raise Exception("Must send in a dict for block_def")
         if block_id == 0:
@@ -53,18 +53,19 @@ class Generator:
             block_id = self.block_id
 
         puzzles = []
-        collision_words = []
+        collision_buckets = []
         for key in block_def:
             k_count = key
             i_count = block_def[key]
             for i in range(i_count):
-                puzzle = self.make_single_puzzle_sans_collision(k_count, percentile, collision_words, batch)
+                puzzle, bucket = self.make_single_puzzle_sans_collision(k_count, percentile, collision_buckets, batch)
                 puzzles.append(puzzle)
-                collision_words.insert(0, puzzle.key)
-                if len(collision_words) > collision_cap:
-                    collision_words.pop()
+                collision_buckets.insert(0, bucket)
+                if len(collision_buckets) > collision_cap:
+                    collision_buckets.pop()
 
-        puzzle_block = PuzzleBlock(block_id, puzzles, name)
+        sorted_puzzles = sorted(puzzles, key=lambda x: x.score)
+        puzzle_block = PuzzleBlock(block_id, sorted_puzzles, name)
         return puzzle_block
 
     def write_puzzle_block_to_csv(self, puzzle_block):
@@ -75,6 +76,7 @@ class Generator:
             csv_writer.writerow(['key', 'words', 'sub_words'])
             for puzzle in puzzle_block.puzzles:
                 key = unicode(puzzle.key).encode("utf-8")
+                # key = "{} {}".format(key, puzzle.score)
                 word_joined = " ".join([unicode(w).encode("utf-8") for w in puzzle.words])
                 csv_writer.writerow([key, word_joined])
 
@@ -82,40 +84,44 @@ class Generator:
     def generate_block_file_name(block_id):
         return "puzzle_block_{}.csv".format(block_id)
 
-    def make_single_puzzle_sans_collision(self, word_length=5, percentile=0.3, words=[], batch=10):
+    def make_single_puzzle_sans_collision(self, word_length=5, percentile=0.5, buckets=None, batch=10):
         # Generate [batch] number of random puzzles, and pick the one with the least collisions to the words.
 
-        if len(words) == 0:
+        if buckets is None or len(buckets) == 0:
             return self.make_single_puzzle(word_length, percentile)
 
         # Create n puzzles and find the score for each one.
         best_score = 9999
         best_bucket = 0
+        collision_factor = 1.0
+        collision_decay = 0.6
+
         for i in range(batch):
             bucket_score = 0
             bucket = self.get_random_bucket(word_length, percentile)
             if bucket is None:
                 raise Exception("Error: Unable to find a bucket with {} length words.".format(word_length))
-            for word in words:
-                bucket_score += util.lexi_collisions(word, bucket.key)
+            for cmp_bucket in buckets:
+                bucket_score += util.lexi_collisions(cmp_bucket, bucket) * collision_factor
+                collision_factor *= collision_decay
             if bucket_score < best_score:
                 best_bucket = bucket
                 best_score = bucket_score
 
         best_bucket.active = False
-        puzzle = Puzzle(best_bucket.key, best_bucket.get_word_values())
-        return puzzle
+        puzzle = Puzzle(best_bucket.key, best_bucket.get_word_values(), best_bucket.sort_score)
+        return puzzle, best_bucket
 
     def make_single_puzzle(self, word_length=5, percentile=0.3):
         bucket = self.get_random_bucket(word_length, percentile)
         if bucket is None:
             raise Exception("Error: Unable to find a bucket with {} length words.".format(word_length))
         bucket.active = False
-        puzzle = Puzzle(bucket.key, bucket.get_word_values())
-        return puzzle
+        puzzle = Puzzle(bucket.key, bucket.get_word_values(), bucket.sort_score)
+        return puzzle, bucket
 
     def get_single_puzzle(self, word_length=5, percentile=0.3):
-        puzzle = self.make_single_puzzle(word_length, percentile)
+        puzzle, bucket = self.make_single_puzzle(word_length, percentile)
         key = unicode(puzzle.key).encode("utf-8")
         word_joined = " ".join([unicode(w).encode("utf-8") for w in puzzle.words])
         print("KEY: {}".format(key))

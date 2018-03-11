@@ -5,13 +5,17 @@ from wpg.interface.color import Color
 
 
 class Engine:
+
+    K_PUZZLE_PERCENTILE = 0.2
+    K_PUZZLE_BATCH = 20
+
     def __init__(self):
 
         # Logic Modules
         self.data_manager = DataManager()
         self.editor = Editor()
         self.generator = Generator()
-        self.version = 2.1
+        self.version = 3.1
 
         # State Data
         self.db_path = None
@@ -114,16 +118,17 @@ class Engine:
 
         self.make_level(1, {3: 20, 4: 5})
         self.make_level(1, {4: 10})
-        self.make_level(20, {5: 20})
-        self.make_level(20, {6: 20})
-        self.make_level(20, {6: 10, 7: 10})
-        self.make_level(10, {7: 20})
+        self.make_level(3, {5: 10})
+        self.make_level(3, {6: 10})
+        # self.make_level(20, {6: 10, 7: 10})
+        # self.make_level(10, {7: 20})
         print("Puzzles generated to {}".format(self.generator.output_dir))
 
     def make_level(self, n_puzzles, block_def):
         for i in range(n_puzzles):
             puzzle_name = "Puzzle Name"
-            puzzle_block = self.generator.make_puzzle_block(puzzle_name, block_def, 0, 0.2)
+            puzzle_block = self.generator.make_puzzle_block(puzzle_name, block_def, 0, self.K_PUZZLE_PERCENTILE,
+                                                            batch=self.K_PUZZLE_BATCH)
             self.generator.write_puzzle_block_to_csv(puzzle_block)
 
     def inspect(self, string):

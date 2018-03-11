@@ -8,6 +8,11 @@ class Bucket:
         self.sub_word_score = 0
         self.active = True
 
+    @property
+    def sort_score(self):
+        key_score = 10 * len(self.key)
+        return key_score + len(self.get_word_values())
+
     def add_word(self, word):
         self.words.append(word)
         self._add_word_score(word)
@@ -20,10 +25,7 @@ class Bucket:
 
     def _add_word_score(self, word):
         self.sub_word_count += 1
-        if len(word.literal) > 3:
-            self.sub_word_score += 2
-        else:
-            self.sub_word_score += 1
+        self.sub_word_score += len(word.literal)
 
     def get_word_values(self):
         out_words = []
