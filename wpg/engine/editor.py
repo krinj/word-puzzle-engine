@@ -72,6 +72,7 @@ class Editor:
         print("Not Found: {}".format(literal))
 
     def run_verify(self, words):
+
         print
         print("Word Verification: Please enter one of the following codes for each word shown.")
         print

@@ -78,9 +78,16 @@ class Interface:
         )
         self.menu_data.add_command(
             key="merge_txt",
-            desc_text="Merges the words in a text file to this database.",
+            desc_text="Merges the words in a text file to this database. Strict mode will exclude any words that "
+                      "start with an uppercase, or contains non alphabetical characters.",
             usage_text="$ [file_path] [min_letters] [max_letters] [strict (1 or 0)]",
             action=self.cmd_merge_txt
+        )
+        self.menu_data.add_command(
+            key="split",
+            desc_text="Splits the given dictionary (txt) file into multiple smaller files.",
+            usage_text="$ [min_letters] [max_letters]",
+            action=self.cmd_split_txt
         )
         self.menu_data.add_command(
             key="info",
@@ -277,6 +284,10 @@ class Interface:
         file_name, min_letters, max_letters, strict = self._get_txt_load_arguments(args)
         self.engine.merge_txt(file_name, strict=strict, min_count=min_letters, max_count=max_letters)
 
+    def cmd_split_txt(self, args):
+        file_name, max_units, min_letters, max_letters = self._get_txt_split_arguments(args)
+        self.engine.split_txt(file_name, max_units=max_units, min_count=min_letters, max_count=max_letters)
+
     def cmd_save(self):
         self.engine.save()
 
@@ -307,6 +318,29 @@ class Interface:
         print("")
 
         return file_name, min_letters, max_letters, strict
+
+    @staticmethod
+    def _get_txt_split_arguments(args):
+
+        max_units = 2000
+        min_letters = 2
+        max_letters = 8
+        file_name = args[0]
+
+        if len(args) > 1:
+            min_letters = int(args[1])
+
+        if len(args) > 2:
+            max_letters = int(args[2])
+
+        print("Splitting File: {}".format(file_name))
+        print("Units Per: {}".format(max_units))
+        print("Min Letters: {}".format(min_letters))
+        print("Max Letters: {}".format(max_letters))
+        print("")
+
+        return file_name, max_units, min_letters, max_letters
+
     # ==================================================================================================================
     # Editor Commands
     # ==================================================================================================================

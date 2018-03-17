@@ -48,7 +48,7 @@ class DataManager:
         return words
 
     @staticmethod
-    def save(words, file_path):
+    def save(words, file_path, write_unverified=False):
         text_path = file_path + "_text"
         if os.path.exists(text_path):
             os.remove(text_path)
@@ -74,7 +74,7 @@ class DataManager:
                     .format(literal, int(verified), int(hidden), int(valid))
                 cursor.execute(query)
 
-                if word.valid and word.verified:
+                if (word.valid and word.verified) or write_unverified:
                     text_file.write(literal + "\n")
 
         conn.commit()

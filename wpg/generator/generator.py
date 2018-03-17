@@ -94,7 +94,7 @@ class Generator:
         best_score = 9999
         best_bucket = 0
         collision_factor = 1.0
-        collision_decay = 0.6
+        collision_decay = 0.85
 
         for i in range(batch):
             bucket_score = 0

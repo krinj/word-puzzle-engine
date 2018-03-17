@@ -1,4 +1,5 @@
 from wpg.data.data_manager import DataManager
+from wpg.data.file_splitter import FileSplitter
 from wpg.engine.editor import Editor
 from wpg.generator.generator import Generator
 from wpg.interface.color import Color
@@ -8,6 +9,7 @@ class Engine:
 
     K_PUZZLE_PERCENTILE = 0.2
     K_PUZZLE_BATCH = 20
+    K_WRITE_UNVERIFIED = True  # Will write words into the output dict even if it is unverified.
 
     def __init__(self):
 
@@ -15,7 +17,7 @@ class Engine:
         self.data_manager = DataManager()
         self.editor = Editor()
         self.generator = Generator()
-        self.version = 3.1
+        self.version = 4.0
 
         # State Data
         self.db_path = None
@@ -35,7 +37,7 @@ class Engine:
     def save(self):
         if self.db_path is None:
             self.db_path = raw_input(Color.set_green("Enter a name for this database: "))
-        self.data_manager.save(self.words, self.db_path)
+        self.data_manager.save(self.words, self.db_path, self.K_WRITE_UNVERIFIED)
         print("Database Saved!")
 
     def load_txt(self, file_path, strict, min_count, max_count):
@@ -54,6 +56,12 @@ class Engine:
 
         self.words_dirty = True
         print("Words Added: {}".format(added_words))
+
+    def split_txt(self, file_path, max_units, min_count, max_count):
+        loaded_words = self.data_manager.load_txt(file_path, strict=False, min_count=min_count, max_count=max_count)
+        splitter = FileSplitter(file_path, min_count, max_count)
+        splitter.process(loaded_words, max_units)
+        print("Words Split: {}".format(len(loaded_words)))
 
     def print_info(self):
         word_count = len(self.words)
