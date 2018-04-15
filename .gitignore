@@ -8,3 +8,7 @@ output/
 *.pyc
 
 split_output/
+
+*.bak
+
+big_words\.txt
