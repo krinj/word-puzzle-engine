@@ -17,7 +17,7 @@ class Engine:
         self.data_manager = DataManager()
         self.editor = Editor()
         self.generator = Generator()
-        self.version = 4.0
+        self.version = 4.1
 
         # State Data
         self.db_path = None
@@ -96,8 +96,11 @@ class Engine:
         self.editor.remove(self.words, literals)
         self.words_dirty = True
 
-    def verify(self):
-        self.editor.run_verify(self.words)
+    def verify(self, batch=False):
+        if batch:
+            self.editor.run_batch_verify(self.words)
+        else:
+            self.editor.run_verify(self.words)
         self.words_dirty = True
 
     def hide(self, literals):

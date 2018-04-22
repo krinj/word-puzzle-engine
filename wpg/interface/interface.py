@@ -135,6 +135,11 @@ class Interface:
             desc_text="Return to the main menu.",
             action=self.cmd_go_to_main_menu
         )
+        self.menu_editor.add_command(
+            key="batch",
+            desc_text="Enter the batch verification mode.",
+            action=self.cmd_batch_verify
+        )
 
     def initialize_generator_menu(self):
         self.menu_generator = Menu("Generator Menu", "Generate and test word puzzles.")
@@ -357,6 +362,12 @@ class Interface:
     def cmd_verify(self):
         self.clear_terminal()
         self.engine.verify()
+        self.clear_terminal()
+        self.show_instructions = True
+
+    def cmd_batch_verify(self):
+        self.clear_terminal()
+        self.engine.verify(True)
         self.clear_terminal()
         self.show_instructions = True
 

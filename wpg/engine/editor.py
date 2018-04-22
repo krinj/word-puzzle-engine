@@ -71,6 +71,75 @@ class Editor:
                 return
         print("Not Found: {}".format(literal))
 
+    def run_batch_verify(self, words):
+        print
+        print("Batch Verification: Please the index of a word to verify it, or one of the following commands.")
+        print
+        print("<i>: The word at this index will be verified. The rest will be hidden.")
+        print("h: All words on this list will be hidden.")
+        print("x: Exit. Return to the main menu.")
+
+        while True:
+
+            print
+
+            unverified_words = []
+            for i in range(len(words)):
+                w = words[i]
+                if not w.verified:
+                    unverified_words.append(w)
+
+            if len(unverified_words) == 0:
+                # All words verified.
+                print("Congratulations! All words have been verified.")
+                _ = raw_input("Press Enter to Continue.")
+                break
+
+            # Decide the batch of words.
+            batch_words = []
+            while len(batch_words) < 10 and len(unverified_words) > 0:
+                batch_words.append(unverified_words.pop(0))
+
+            # Show all the words.
+            for i in range(len(batch_words)):
+                print("{}. {}".format(i, batch_words[i].literal))
+
+            # Accept the input
+            print("")
+            code = raw_input("\t{}: ".format(Color.set_yellow("Input")))
+            index = -1
+
+            try:
+                index = int(code)
+            except:
+                pass
+
+            if index != -1 and index < len(batch_words):
+                # Verify the indexed word.
+                self._hide_words(batch_words)
+                word = batch_words[index]
+                word.verified = True
+                word.verified = True
+                word.valid = True
+                word.hidden = False
+                print("\t{} verified. {} left.".format(word.literal, self._unverified_word_count(words)))
+
+            elif code == "h":
+                self._hide_words(batch_words)
+                print("\tWords hidden. {} left.".format(self._unverified_word_count(words)))
+
+            elif code == "x":
+                break
+
+            else:
+                print("\tInvalid Input. Usage: [y/n/x]")
+
+    def _hide_words(self, words):
+        for word in words:
+            word.verified = True
+            word.valid = True
+            word.hidden = True
+
     def run_verify(self, words):
 
         print
