@@ -127,10 +127,11 @@ class Engine:
 
         print("Generating Puzzles to CSV. Please wait...")
 
-        self.make_level(1, {3: 20, 4: 5})
-        self.make_level(1, {4: 10})
-        self.make_level(3, {5: 10})
-        self.make_level(3, {6: 10})
+        self.make_level(1, {3: 40, 4: 5})
+        self.make_level(9, {4: 10})
+        self.make_level(15, {5: 10})
+        self.make_level(15, {6: 10})
+
         # self.make_level(20, {6: 10, 7: 10})
         # self.make_level(10, {7: 20})
         print("Puzzles generated to {}".format(self.generator.output_dir))
