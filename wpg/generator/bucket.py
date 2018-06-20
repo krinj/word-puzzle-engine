@@ -1,17 +1,27 @@
 class Bucket:
+
+    MAX_LETTERS = 12  # Beyond this and the score will suffer.
+
     def __init__(self, key):
         self.key = key
         self.count = len(key)
         self.words = []
         self.sub_buckets = []
-        self.sub_word_count = 0
-        self.sub_word_score = 0
         self.active = True
+        self.tier_scores = [0] * 10
+        self.word_counts = [0] * 10
 
-    @property
-    def sort_score(self):
+    def n_min_score(self, n_min=0):
+        penalty = 0
+        excess = self.word_counts[n_min] - self.MAX_LETTERS
+        if excess > 0:
+            penalty = len(self.key) * excess * 2
+
+        return self.tier_scores[n_min] - penalty
+
+    def sort_score(self, n_min=0):
         key_score = 10 * len(self.key)
-        return key_score + len(self.get_word_values())
+        return key_score + len(self.get_word_values(n_min))
 
     def add_word(self, word):
         self.words.append(word)
@@ -24,14 +34,19 @@ class Bucket:
                 self._add_word_score(word)
 
     def _add_word_score(self, word):
-        self.sub_word_count += 1
-        self.sub_word_score += len(word.literal)
+        score = len(word.literal)
 
-    def get_word_values(self):
+        # Add a cumulative score for each tier.
+        for i in range(0, score + 1):
+            self.tier_scores[i] += score
+            self.word_counts[i] += 1
+
+    def get_word_values(self, n_min=0):
         out_words = []
         for s_bucket in self.sub_buckets:
-            for word in s_bucket.words:
-                out_words.append(word.literal)
+            if n_min == 0 or len(s_bucket.key) >= n_min:
+                for word in s_bucket.words:
+                    out_words.append(word.literal)
 
         for word in self.words:
             out_words.append(word.literal)

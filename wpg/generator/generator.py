@@ -76,8 +76,8 @@ class Generator:
                 if key in used_keys:
                     tier.buckets[key].active = False
 
-    def make_puzzle_block(self, name, block_def, block_id=0, percentile=0.5, collision_cap=3, batch=10):
-        if block_def is None:
+    def make_puzzle_block(self, name, block_defs, block_id=0, collision_cap=10, batch=10):
+        if block_defs is None or len(block_defs) == 0:
             raise Exception("Must send in a dict for block_def")
         if block_id == 0:
             self.block_id += 1
@@ -85,11 +85,10 @@ class Generator:
 
         puzzles = []
         collision_buckets = []
-        for key in block_def:
-            k_count = key
-            i_count = block_def[key]
-            for i in range(i_count):
-                puzzle, bucket = self.make_single_puzzle_sans_collision(k_count, percentile, collision_buckets, batch)
+        for block_def in block_defs:
+            for i in range(block_def.count):
+                puzzle, bucket = self.make_single_puzzle_sans_collision(
+                    block_def.tier, block_def.percentile, collision_buckets, batch, block_def.n_min)
                 puzzles.append(puzzle)
                 collision_buckets.insert(0, bucket)
                 if len(collision_buckets) > collision_cap:
@@ -123,21 +122,21 @@ class Generator:
     def generate_block_file_name(block_id):
         return "puzzle_block_{}.csv".format(block_id)
 
-    def make_single_puzzle_sans_collision(self, word_length=5, percentile=0.5, buckets=None, batch=10):
+    def make_single_puzzle_sans_collision(self, word_length=5, percentile=0.5, buckets=None, batch=10, n_min=0):
         # Generate [batch] number of random puzzles, and pick the one with the least collisions to the words.
 
         if buckets is None or len(buckets) == 0:
-            return self.make_single_puzzle(word_length, percentile)
+            return self.make_single_puzzle(word_length, percentile, n_min)
 
         # Create n puzzles and find the score for each one.
         best_score = 9999
         best_bucket = 0
         collision_factor = 1.0
-        collision_decay = 0.85
+        collision_decay = 1.0
 
         for i in range(batch):
             bucket_score = 0
-            bucket = self.get_random_bucket(word_length, percentile)
+            bucket = self.get_random_bucket(word_length, percentile, n_min)
             if bucket is None:
                 raise Exception("Error: Unable to find a bucket with {} length words.".format(word_length))
             for cmp_bucket in buckets:
@@ -148,28 +147,28 @@ class Generator:
                 best_score = bucket_score
 
         best_bucket.active = False
-        puzzle = Puzzle(best_bucket.key, best_bucket.get_word_values(), best_bucket.sort_score)
+        puzzle = Puzzle(best_bucket.key, best_bucket.get_word_values(n_min), best_bucket.sort_score(n_min))
         return puzzle, best_bucket
 
-    def make_single_puzzle(self, word_length=5, percentile=0.3):
+    def make_single_puzzle(self, word_length=5, percentile=0.3, n_min=0):
         bucket = self.get_random_bucket(word_length, percentile)
         if bucket is None:
             raise Exception("Error: Unable to find a bucket with {} length words.".format(word_length))
         bucket.active = False
-        puzzle = Puzzle(bucket.key, bucket.get_word_values(), bucket.sort_score)
+        puzzle = Puzzle(bucket.key, bucket.get_word_values(n_min), bucket.sort_score(n_min))
         return puzzle, bucket
 
-    def get_single_puzzle(self, word_length=5, percentile=0.3):
-        puzzle, bucket = self.make_single_puzzle(word_length, percentile)
+    def get_single_puzzle(self, word_length=5, percentile=0.3, n_min=0):
+        puzzle, bucket = self.make_single_puzzle(word_length, percentile, n_min)
         key = unicode(puzzle.key).encode("utf-8")
         word_joined = " ".join([unicode(w).encode("utf-8") for w in puzzle.words])
         print("KEY: {}".format(key))
         print("WORDS: {}".format(word_joined))
         print
 
-    def get_random_bucket(self, key_length=5, percentile=0.3):
+    def get_random_bucket(self, key_length=5, percentile=0.3, n_min=0):
         tier = self.tier_manager.get_tier(key_length)
-        tier.sort_bucket_array()
+        tier.sort_bucket_array(n_min)
         top_index = int(len(tier.bucket_array) * percentile)
         sub_list = tier.bucket_array[0:top_index]
         bucket = random.choice(sub_list)

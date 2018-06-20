@@ -22,8 +22,10 @@ class Tier:
             self.bucket_array.append(bucket)
         return self.buckets[key]
 
-    def sort_bucket_array(self):
-        self.bucket_array = sorted(self.bucket_array, key=lambda item: (item.active, item.sub_word_score), reverse=True)
+    def sort_bucket_array(self, n_min=0):
+        self.bucket_array = sorted(
+            self.bucket_array,
+            key=lambda item: (item.active, item.n_min_score(n_min)), reverse=True)
 
     def get_top_n_buckets(self, n=5):
         return self.bucket_array[0:n]
@@ -96,7 +98,7 @@ class TierManager:
                 for j in range(i - 1, tier.min_sub_tier_size - 1, -1):
 
                     # Break this bucket off if it is already populated enough.
-                    if big_bucket.sub_word_score >= self.K_TIER_FALLOFF_COUNT:
+                    if big_bucket.n_min_score(0) >= self.K_TIER_FALLOFF_COUNT:
                         break
 
                     lower_tier = self.tiers[j]

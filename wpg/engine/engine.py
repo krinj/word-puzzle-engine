@@ -3,14 +3,14 @@ import csv
 from wpg.data.data_manager import DataManager
 from wpg.data.file_splitter import FileSplitter
 from wpg.engine.editor import Editor
+from wpg.generator.block_def import BlockDef
 from wpg.generator.generator import Generator
 from wpg.interface.color import Color
 
 
 class Engine:
 
-    K_PUZZLE_PERCENTILE = 0.2
-    K_PUZZLE_BATCH = 20
+    K_PUZZLE_BATCH = 50
     K_WRITE_UNVERIFIED = True  # Will write words into the output dict even if it is unverified.
 
     def __init__(self):
@@ -141,20 +141,34 @@ class Engine:
 
         print("Generating Puzzles to CSV. Please wait...")
 
-        self.make_level(1, {3: 40, 4: 5})
-        self.make_level(9, {4: 10})
-        self.make_level(15, {5: 10})
-        self.make_level(15, {6: 10})
+        self.make_level(count=1, block_def=[
+            BlockDef(tier=3, count=40),
+            BlockDef(tier=4, count=5),
+        ])
 
-        # self.make_level(20, {6: 10, 7: 10})
-        # self.make_level(10, {7: 20})
+        self.make_level(count=9, block_def=[
+            BlockDef(tier=4, count=10)
+        ])
+
+        self.make_level(count=15, block_def=[
+            BlockDef(tier=5, count=10, n_min=4)
+        ])
+
+        self.make_level(count=10, block_def=[
+            BlockDef(tier=6, count=10, n_min=4)
+        ])
+
+        self.make_level(count=5, block_def=[
+            BlockDef(tier=6, count=10, n_min=5, percentile=0.05)
+        ])
+
         self.generator.write_used_keys()
         print("Puzzles generated to {}".format(self.generator.output_dir))
 
-    def make_level(self, n_puzzles, block_def):
-        for i in range(n_puzzles):
+    def make_level(self, count, block_def):
+        for i in range(count):
             puzzle_name = "Puzzle Name"
-            puzzle_block = self.generator.make_puzzle_block(puzzle_name, block_def, 0, self.K_PUZZLE_PERCENTILE,
+            puzzle_block = self.generator.make_puzzle_block(puzzle_name, block_def, 0,
                                                             batch=self.K_PUZZLE_BATCH)
             self.generator.write_puzzle_block_to_csv(puzzle_block)
 
