@@ -29,7 +29,7 @@ class Generator:
         self.tier_manager.clear()
         self.process_suppression(words)
         for word in words:
-            if word.verified and word.valid and not word.hidden:
+            if word.playable:
                 bucket = self.get_bucket(word.key, True)
                 if bucket is not None:
                     bucket.add_word(word)
@@ -46,6 +46,7 @@ class Generator:
         for w in playable_words:
             valid_words_dict[w.literal] = w
 
+        suppress_count = 0
         for w1 in playable_words:
             for p in patterns:
                 p_len = len(p)
@@ -56,21 +57,24 @@ class Generator:
                     if len(base_word) < 3:
                         continue
                     if base_word in valid_words_dict:
-                        print("Suppressing: {}".format(w1.literal))
+                        suppress_count += 1
                         w1.suppressed = True
 
-        pass
+        print("Suppressed {} Words".format(suppress_count))
 
     def get_bucket(self, key, create=False):
         return self.tier_manager.get_bucket(key, create)
 
     def calibrate_buckets(self):
         self.tier_manager.link_sub_buckets()
-        self.print_stats()
 
-    def reset_flags(self):
+    def reset_flags(self, used_keys):
         self.block_id = 0
         self.tier_manager.reset()
+        for tier in self.tier_manager.tiers:
+            for key in tier.buckets:
+                if key in used_keys:
+                    tier.buckets[key].active = False
 
     def make_puzzle_block(self, name, block_def, block_id=0, percentile=0.5, collision_cap=3, batch=10):
         if block_def is None:
@@ -106,6 +110,14 @@ class Generator:
                 # key = "{} {}".format(key, puzzle.score)
                 word_joined = " ".join([unicode(w).encode("utf-8") for w in puzzle.words])
                 csv_writer.writerow([key, word_joined])
+
+    def write_used_keys(self):
+        file_name = os.path.join(self.output_dir, "used_keys")
+        with open(file_name, 'wb') as file:
+            csv_writer = csv.writer(file, delimiter=',')
+            used_keys = self.tier_manager.get_used_keys()
+            for key in used_keys:
+                csv_writer.writerow([key])
 
     @staticmethod
     def generate_block_file_name(block_id):
@@ -181,7 +193,12 @@ class Generator:
             tier = self.tier_manager.get_tier(i)
             if len(tier.buckets) == 0:
                 continue
-            print("Tier {}: {} Buckets".format(i, len(tier.buckets)))
+            used_percent = 100 * sum(1 for b in tier.bucket_array if not b.active)/len(tier.bucket_array)
+            print("Tier {}: {} Buckets - Used: ({:.1f}%)".format(
+                i,
+                len(tier.buckets),
+                used_percent
+            ))
         print
 
     def analyse(self, string):

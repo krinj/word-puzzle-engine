@@ -1,3 +1,5 @@
+import csv
+
 from wpg.data.data_manager import DataManager
 from wpg.data.file_splitter import FileSplitter
 from wpg.engine.editor import Editor
@@ -24,9 +26,19 @@ class Engine:
         self.words = []
         self.words_dirty = True
 
+        # Key Mask
+        self.used_keys = {}
+
     # ==================================================================================================================
     # Data Manager
     # ==================================================================================================================
+
+    def load_used_keys(self, file_path):
+        self.used_keys = {}
+        with open(file_path, 'rb') as f:
+            reader = csv.reader(f, delimiter=' ')
+            for row in reader:
+                self.used_keys[row[0]] = True
 
     def load_db(self, file_path):
         self.db_path = file_path
@@ -76,6 +88,7 @@ class Engine:
         print("Verified Words: {}".format(verified_count))
         print("Unverified Words: {}".format(unverified_count))
         print("Hidden Words: {}".format(hidden_count))
+        print("Used Keys: {}".format(len(self.used_keys)))
         print
 
     def _set_words(self, words):
@@ -118,11 +131,12 @@ class Engine:
             print
             self.words_dirty = False
             self.generator.calibrate(self.words)
+            self.generator.reset_flags(self.used_keys)
+            self.generator.print_stats()
 
     def generate(self):
 
         self._calibrate()
-        self.generator.reset_flags()
         self.generator.set_output_dir(self.db_path)
 
         print("Generating Puzzles to CSV. Please wait...")
@@ -134,6 +148,7 @@ class Engine:
 
         # self.make_level(20, {6: 10, 7: 10})
         # self.make_level(10, {7: 20})
+        self.generator.write_used_keys()
         print("Puzzles generated to {}".format(self.generator.output_dir))
 
     def make_level(self, n_puzzles, block_def):

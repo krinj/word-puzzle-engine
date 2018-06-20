@@ -79,6 +79,12 @@ class TierManager:
         else:
             return None
 
+    def get_used_keys(self):
+        used_keys = []
+        for tier in self.tiers:
+            used_keys += [b.key for b in tier.bucket_array if not b.active]
+        return used_keys
+
     def link_sub_buckets(self):
         print
         start_time = time.time()

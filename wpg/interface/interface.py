@@ -6,7 +6,7 @@ from wpg.interface.menu import Menu
 
 
 class Interface:
-    def __init__(self, initial_file=None):
+    def __init__(self, initial_file=None, used_keys_path=None):
 
         self.engine = Engine()
         self.show_instructions = True
@@ -24,6 +24,9 @@ class Interface:
 
         if initial_file is not None:
             self.cmd_load_db([initial_file])
+
+        if used_keys_path is not None:
+            self.engine.load_used_keys(used_keys_path)
 
     # ==================================================================================================================
     # Initialize
