@@ -27,12 +27,39 @@ class Generator:
 
     def calibrate(self, words):
         self.tier_manager.clear()
+        self.process_suppression(words)
         for word in words:
             if word.verified and word.valid and not word.hidden:
                 bucket = self.get_bucket(word.key, True)
                 if bucket is not None:
                     bucket.add_word(word)
         self.calibrate_buckets()
+
+    @staticmethod
+    def process_suppression(words):
+        """ Our suppression policy will hide words that match a certain pattern. """
+        patterns = ["s", "ed", "y"]
+        playable_words = [w for w in words if w.playable]
+
+        # Create a Dict of valid words.
+        valid_words_dict = {}
+        for w in playable_words:
+            valid_words_dict[w.literal] = w
+
+        for w1 in playable_words:
+            for p in patterns:
+                p_len = len(p)
+                lit = w1.literal
+                p_word = lit[-p_len:]
+                if p_word == p:
+                    base_word = lit[:-p_len]
+                    if len(base_word) < 3:
+                        continue
+                    if base_word in valid_words_dict:
+                        print("Suppressing: {}".format(w1.literal))
+                        w1.suppressed = True
+
+        pass
 
     def get_bucket(self, key, create=False):
         return self.tier_manager.get_bucket(key, create)
