@@ -1,6 +1,6 @@
 class Bucket:
 
-    MAX_LETTERS = 12  # Beyond this and the score will suffer.
+    MAX_LETTERS = 10  # Beyond this and the score will suffer.
 
     def __init__(self, key):
         self.key = key
@@ -17,9 +17,9 @@ class Bucket:
         if excess > 0:
             penalty = len(self.key) * excess * 2
 
-        if len(self.key) > 3 and self.word_counts[n_min] < 3:
-            # This puzzle isn't long enough.
-            return -10
+        # if len(self.key) > 3 and self.word_counts[n_min] < 3:
+        #     # This puzzle isn't long enough.
+        #     return -10
 
         return self.tier_scores[n_min] - penalty
 

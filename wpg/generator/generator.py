@@ -85,14 +85,20 @@ class Generator:
 
         puzzles = []
         collision_buckets = []
+
         for block_def in block_defs:
+            print("")
+            print("Block Def | ID: {} T:{}".format(block_id, block_def.n_min))
             for i in range(block_def.count):
                 puzzle, bucket = self.make_single_puzzle_sans_collision(
                     block_def.tier, block_def.percentile, collision_buckets, batch, block_def.n_min)
                 puzzles.append(puzzle)
+                print("\tPuzzle | K: {} W: {} GS: {}".format(
+                    puzzle.key, len(puzzle.words), puzzle.generator_score))
                 collision_buckets.insert(0, bucket)
                 if len(collision_buckets) > collision_cap:
                     collision_buckets.pop()
+        print("")
 
         sorted_puzzles = sorted(puzzles, key=lambda x: x.score)
         puzzle_block = PuzzleBlock(block_id, sorted_puzzles, name)
@@ -141,9 +147,9 @@ class Generator:
             if bucket is None:
                 raise Exception("Error: Unable to find a bucket with {} length words.".format(word_length))
 
-            if bucket.n_min_score(n_min) < 1:
-                # Add a high score for shitty words.
-                bucket_score += 1000
+            # if bucket.n_min_score(n_min) < 1:
+            #     # Add a high score for shitty words.
+            #     bucket_score += 1000
 
             for cmp_bucket in buckets:
                 bucket_score += util.lexi_collisions(cmp_bucket, bucket) * collision_factor
@@ -154,15 +160,17 @@ class Generator:
                 best_score = bucket_score
 
         best_bucket.active = False
-        puzzle = Puzzle(best_bucket.key, best_bucket.get_word_values(n_min), best_bucket.sort_score(n_min))
+        puzzle = Puzzle(best_bucket.key, best_bucket.get_word_values(n_min), best_bucket.sort_score(n_min),
+                        collision_score=best_score, generator_score=best_bucket.n_min_score(n_min))
         return puzzle, best_bucket
 
     def make_single_puzzle(self, word_length=5, percentile=0.3, n_min=0):
-        bucket = self.get_random_bucket(word_length, percentile)
+        bucket = self.get_random_bucket(word_length, percentile, n_min)
         if bucket is None:
             raise Exception("Error: Unable to find a bucket with {} length words.".format(word_length))
         bucket.active = False
-        puzzle = Puzzle(bucket.key, bucket.get_word_values(n_min), bucket.sort_score(n_min))
+        puzzle = Puzzle(bucket.key, bucket.get_word_values(n_min), bucket.sort_score(n_min),
+                        collision_score=0, generator_score=bucket.n_min_score(n_min))
         return puzzle, bucket
 
     def get_single_puzzle(self, word_length=5, percentile=0.3, n_min=0):
