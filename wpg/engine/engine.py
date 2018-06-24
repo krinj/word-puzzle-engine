@@ -10,7 +10,7 @@ from wpg.interface.color import Color
 
 class Engine:
 
-    K_PUZZLE_BATCH = 50
+    K_PUZZLE_BATCH = 75
     K_WRITE_UNVERIFIED = True  # Will write words into the output dict even if it is unverified.
 
     def __init__(self):

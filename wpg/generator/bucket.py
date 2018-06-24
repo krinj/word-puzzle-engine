@@ -17,6 +17,10 @@ class Bucket:
         if excess > 0:
             penalty = len(self.key) * excess * 2
 
+        if len(self.key) > 3 and self.word_counts[n_min] < 3:
+            # This puzzle isn't long enough.
+            return -10
+
         return self.tier_scores[n_min] - penalty
 
     def sort_score(self, n_min=0):

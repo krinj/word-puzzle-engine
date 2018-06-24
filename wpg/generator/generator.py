@@ -27,7 +27,7 @@ class Generator:
 
     def calibrate(self, words):
         self.tier_manager.clear()
-        self.process_suppression(words)
+        self.suffix_suppression(words)
         for word in words:
             if word.playable:
                 bucket = self.get_bucket(word.key, True)
@@ -36,7 +36,7 @@ class Generator:
         self.calibrate_buckets()
 
     @staticmethod
-    def process_suppression(words):
+    def suffix_suppression(words):
         """ Our suppression policy will hide words that match a certain pattern. """
         patterns = ["s", "ed", "y"]
         playable_words = [w for w in words if w.playable]
@@ -137,11 +137,18 @@ class Generator:
         for i in range(batch):
             bucket_score = 0
             bucket = self.get_random_bucket(word_length, percentile, n_min)
+
             if bucket is None:
                 raise Exception("Error: Unable to find a bucket with {} length words.".format(word_length))
+
+            if bucket.n_min_score(n_min) < 1:
+                # Add a high score for shitty words.
+                bucket_score += 1000
+
             for cmp_bucket in buckets:
                 bucket_score += util.lexi_collisions(cmp_bucket, bucket) * collision_factor
                 collision_factor *= collision_decay
+
             if bucket_score < best_score:
                 best_bucket = bucket
                 best_score = bucket_score
