@@ -169,7 +169,8 @@ class Engine:
         for i in range(count):
             puzzle_name = "Puzzle Name"
             puzzle_block = self.generator.make_puzzle_block(puzzle_name, block_def, 0,
-                                                            batch=self.K_PUZZLE_BATCH)
+                                                            batch=self.K_PUZZLE_BATCH,
+                                                            cadence_split=0.8)
             self.generator.write_puzzle_block_to_csv(puzzle_block)
 
     def inspect(self, string):

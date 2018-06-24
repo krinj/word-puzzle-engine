@@ -76,7 +76,7 @@ class Generator:
                 if key in used_keys:
                     tier.buckets[key].active = False
 
-    def make_puzzle_block(self, name, block_defs, block_id=0, collision_cap=10, batch=10):
+    def make_puzzle_block(self, name, block_defs, block_id=0, collision_cap=10, batch=10, cadence_split=0.8):
         if block_defs is None or len(block_defs) == 0:
             raise Exception("Must send in a dict for block_def")
         if block_id == 0:
@@ -101,6 +101,23 @@ class Generator:
         print("")
 
         sorted_puzzles = sorted(puzzles, key=lambda x: x.score)
+
+        # Cadence the puzzles based on the split ratio.
+        cadence_index = int(len(sorted_puzzles) * cadence_split)
+        if cadence_index > 3:  # Cadence index must be at least 4 for any effect.
+
+            # Split this section into two different groups.
+            cadence_sorted_even = []
+            cadence_sorted_odd = []
+
+            cadence_unsorted = sorted_puzzles[:cadence_index]
+            for i in range(cadence_index):
+                add_list = cadence_sorted_even if i % 2 == 0 else cadence_sorted_odd
+                add_list.append(cadence_unsorted[i])
+
+            # Add all the sorted puzzles together.
+            sorted_puzzles = cadence_sorted_even + cadence_sorted_odd + sorted_puzzles[cadence_index:]
+
         puzzle_block = PuzzleBlock(block_id, sorted_puzzles, name)
         return puzzle_block
 
