@@ -49,6 +49,7 @@ class Engine:
     def save(self):
         if self.db_path is None:
             self.db_path = raw_input(Color.set_green("Enter a name for this database: "))
+        self.generator.suffix_suppression(self.words)
         self.data_manager.save(self.words, self.db_path, self.K_WRITE_UNVERIFIED)
         print("Database Saved!")
 
@@ -142,12 +143,13 @@ class Engine:
         print("Generating Puzzles to CSV. Please wait...")
 
         self.make_level(count=1, block_def=[
-            BlockDef(tier=3, count=40),
+            BlockDef(tier=3, count=5),
             BlockDef(tier=4, count=5),
         ])
 
         self.make_level(count=9, block_def=[
-            BlockDef(tier=4, count=10)
+            BlockDef(tier=4, count=7),
+            BlockDef(tier=5, count=3),
         ])
 
         self.make_level(count=15, block_def=[
@@ -159,10 +161,11 @@ class Engine:
         ])
 
         self.make_level(count=5, block_def=[
-            BlockDef(tier=6, count=10, n_min=5, percentile=0.05)
+            BlockDef(tier=6, count=10, n_min=5, percentile=0.15)
         ])
 
         self.generator.write_used_keys()
+        self.generator.write_hidden_words()
         print("Puzzles generated to {}".format(self.generator.output_dir))
 
     def make_level(self, count, block_def):

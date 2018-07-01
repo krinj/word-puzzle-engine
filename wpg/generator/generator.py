@@ -20,6 +20,8 @@ class Generator:
         self.tier_manager = TierManager(9)
         self.block_id = 0
         self.output_dir = None
+        self._puzzle_index = 0
+        self.hidden_word_list = []
 
     def set_output_dir(self, output_dir):
         self.output_dir = os.path.join("./output/", output_dir)
@@ -29,10 +31,14 @@ class Generator:
         self.tier_manager.clear()
         self.suffix_suppression(words)
         for word in words:
-            if word.playable:
-                bucket = self.get_bucket(word.key, True)
-                if bucket is not None:
+            bucket = self.get_bucket(word.key, True)
+            if bucket is not None:
+                if word.playable:
                     bucket.add_word(word)
+                elif word.valid and word.verified:
+                    # Add all the hidden and suppressed words.
+                    bucket.add_hidden_word(word)
+
         self.calibrate_buckets()
 
     @staticmethod
@@ -70,6 +76,8 @@ class Generator:
 
     def reset_flags(self, used_keys):
         self.block_id = 0
+        self._puzzle_index = 0
+        self.hidden_word_list = []
         self.tier_manager.reset()
         for tier in self.tier_manager.tiers:
             for key in tier.buckets:
@@ -133,6 +141,36 @@ class Generator:
                 word_joined = " ".join([unicode(w).encode("utf-8") for w in puzzle.words])
                 csv_writer.writerow([key, word_joined])
 
+        file_name = os.path.join(self.output_dir, self.generate_debug_file_name(puzzle_block.id))
+        with open(file_name, 'wb') as f:
+            csv_writer = csv.writer(f, delimiter=',')
+            csv_writer.writerow([puzzle_block.name])
+
+            for puzzle in puzzle_block.puzzles:
+
+                # Write the key.
+                key = unicode(puzzle.key).encode("utf-8")
+                csv_writer.writerow(["Key: {}".format(key)])
+
+                # Write the joined words.
+                word_joined = " ".join([unicode(w).encode("utf-8") for w in puzzle.words])
+                word_joined = "Puzzle Words: {}".format(word_joined)
+                csv_writer.writerow([word_joined])
+
+                # Write the hidden words.
+                hidden_words = self.get_hidden_words(puzzle.key)
+                word_joined = " ".join([unicode(w).encode("utf-8") for w in hidden_words])
+                word_joined = "Hidden Words: {}".format(word_joined)
+                csv_writer.writerow([word_joined])
+
+                # New line.
+                csv_writer.writerow(["\n"])
+
+                # Create a list of universal hidden words for all puzzles.
+                for h in hidden_words:
+                    if h not in self.hidden_word_list:
+                        self.hidden_word_list.append(h)
+
     def write_used_keys(self):
         file_name = os.path.join(self.output_dir, "used_keys")
         with open(file_name, 'wb') as file:
@@ -144,6 +182,10 @@ class Generator:
     @staticmethod
     def generate_block_file_name(block_id):
         return "puzzle_block_{}.csv".format(block_id)
+
+    @staticmethod
+    def generate_debug_file_name(block_id):
+        return "debug_block_{}.csv".format(block_id)
 
     def make_single_puzzle_sans_collision(self, word_length=5, percentile=0.5, buckets=None, batch=10, n_min=0):
         # Generate [batch] number of random puzzles, and pick the one with the least collisions to the words.
@@ -246,3 +288,17 @@ class Generator:
         words = bucket.get_word_values()
         print("Word Count: {}".format(len(words)))
         print(u"Words: {}".format(", ".join(words)))
+
+    def write_hidden_words(self):
+        """ Write all the hidden words for this generator to the file. """
+        hidden_path = os.path.join(self.output_dir, "all_hidden_words")
+        if os.path.exists(hidden_path):
+            os.remove(hidden_path)
+        hidden_file = open(hidden_path, "w+")
+
+        for word in self.hidden_word_list:
+            hidden_file.write(word + "\n")
+
+    def get_hidden_words(self, key, n_min=0):
+        hidden_words = self.tier_manager.get_bucket(key).get_hidden_word_values(n_min)
+        return hidden_words

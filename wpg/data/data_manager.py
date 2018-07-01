@@ -49,10 +49,18 @@ class DataManager:
 
     @staticmethod
     def save(words, file_path, write_unverified=False):
-        text_path = file_path + "_text"
+
+        # All Valid Words.
+        text_path = file_path + "_all_words"
         if os.path.exists(text_path):
             os.remove(text_path)
         text_file = open(text_path, "w+")
+
+        # Hidden Words.
+        hidden_path = file_path + "_hidden_words"
+        if os.path.exists(hidden_path):
+            os.remove(hidden_path)
+        hidden_file = open(hidden_path, "w+")
 
         conn = sqlite3.connect(file_path)
         cursor = conn.cursor()
@@ -74,8 +82,11 @@ class DataManager:
                     .format(literal, int(verified), int(hidden), int(valid))
                 cursor.execute(query)
 
-                if (word.valid and word.verified) or write_unverified:
+                if word.valid and (word.verified or write_unverified):
                     text_file.write(literal + "\n")
+
+                if word.valid and (word.hidden or word.suppressed):
+                    hidden_file.write(literal + "\n")
 
         conn.commit()
         conn.close()
