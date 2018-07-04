@@ -143,29 +143,30 @@ class Engine:
         print("Generating Puzzles to CSV. Please wait...")
 
         self.make_level(count=1, block_def=[
-            BlockDef(tier=3, count=5),
+            BlockDef(tier=3, count=15),
             BlockDef(tier=4, count=5),
         ])
 
         self.make_level(count=9, block_def=[
-            BlockDef(tier=4, count=7),
-            BlockDef(tier=5, count=3),
+            BlockDef(tier=4, count=15),
+            BlockDef(tier=5, count=5),
         ])
 
         self.make_level(count=15, block_def=[
-            BlockDef(tier=5, count=10, n_min=4)
+            BlockDef(tier=5, count=20, n_min=4)
         ])
 
         self.make_level(count=10, block_def=[
-            BlockDef(tier=6, count=10, n_min=4)
+            BlockDef(tier=6, count=20, n_min=4)
         ])
 
         self.make_level(count=5, block_def=[
-            BlockDef(tier=6, count=10, n_min=5, percentile=0.15)
+            BlockDef(tier=6, count=20, n_min=5, percentile=0.15)
         ])
 
         self.generator.write_used_keys()
         self.generator.write_hidden_words()
+        self.generator.write_valid_words()
         print("Puzzles generated to {}".format(self.generator.output_dir))
 
     def make_level(self, count, block_def):

@@ -22,6 +22,7 @@ class Generator:
         self.output_dir = None
         self._puzzle_index = 0
         self.hidden_word_list = []
+        self.valid_word_list = []
 
     def set_output_dir(self, output_dir):
         self.output_dir = os.path.join("./output/", output_dir)
@@ -78,6 +79,7 @@ class Generator:
         self.block_id = 0
         self._puzzle_index = 0
         self.hidden_word_list = []
+        self.valid_word_list = []
         self.tier_manager.reset()
         for tier in self.tier_manager.tiers:
             for key in tier.buckets:
@@ -170,6 +172,10 @@ class Generator:
                 for h in hidden_words:
                     if h not in self.hidden_word_list:
                         self.hidden_word_list.append(h)
+
+                for v in puzzle.words:
+                    if v not in self.valid_word_list:
+                        self.valid_word_list.append(v)
 
     def write_used_keys(self):
         file_name = os.path.join(self.output_dir, "used_keys")
@@ -298,6 +304,16 @@ class Generator:
 
         for word in self.hidden_word_list:
             hidden_file.write(word + "\n")
+
+    def write_valid_words(self):
+        """ Write all the hidden words for this generator to the file. """
+        write_path = os.path.join(self.output_dir, "all_valid_words")
+        if os.path.exists(write_path):
+            os.remove(write_path)
+        valid_file = open(write_path, "w+")
+
+        for word in self.valid_word_list:
+            valid_file.write(word + "\n")
 
     def get_hidden_words(self, key, n_min=0):
         hidden_words = self.tier_manager.get_bucket(key).get_hidden_word_values(n_min)
