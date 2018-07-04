@@ -1,3 +1,6 @@
+import csv
+
+from wpg.data.data_manager import DataManager
 from wpg.engine.word import Word
 from wpg.interface.color import Color
 
@@ -30,7 +33,11 @@ class Editor:
 
     def hide(self, words, literals=None):
         for literal in literals:
-            self.hide_single(words, literal.lower())
+            if ".csv" in literal:
+                sub_literals = DataManager.read_csv(literal)
+                self.hide(words, sub_literals)
+            else:
+                self.hide_single(words, literal.lower())
 
     @staticmethod
     def hide_single(words, literal):
@@ -58,7 +65,11 @@ class Editor:
 
     def remove(self, words, literals=None):
         for literal in literals:
-            self.remove_single(words, literal.lower())
+            if ".csv" in literal:
+                sub_literals = DataManager.read_csv(literal)
+                self.remove(words, sub_literals)
+            else:
+                self.remove_single(words, literal.lower())
 
     @staticmethod
     def remove_single(words, literal):

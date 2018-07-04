@@ -1,3 +1,4 @@
+import csv
 import os
 import sqlite3
 
@@ -28,7 +29,6 @@ class DataManager:
         words = []
 
         for row in results:
-
             # Copy the data from the tables.
             literal = row[0]
             verified = bool(row[1])
@@ -156,3 +156,17 @@ class DataManager:
         for c in char:
             string = string.replace(c, "")
         return string
+
+    @staticmethod
+    def read_csv(path):
+        if not os.path.exists(path):
+            raise Exception("File not found: {}".format(path))
+
+        literals = []
+        with open(path) as f:
+            reader = csv.reader(f)
+            for row in reader:
+                literal = DataManager._strip(row[0], ['\n', '\r', '\t', '.', '"', "'", "-", "&"])
+                literals.append(literal)
+
+        return literals

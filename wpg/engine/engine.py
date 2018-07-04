@@ -10,7 +10,7 @@ from wpg.interface.color import Color
 
 class Engine:
 
-    K_PUZZLE_BATCH = 75
+    K_PUZZLE_BATCH = 25
     K_WRITE_UNVERIFIED = True  # Will write words into the output dict even if it is unverified.
 
     def __init__(self):
@@ -79,13 +79,13 @@ class Engine:
     def print_info(self):
         word_count = len(self.words)
         verified_count = sum(w.verified is True for w in self.words)
-        valid_count = sum(w.valid is True for w in self.words)
+        valid_count = sum(w.playable is True for w in self.words)
         hidden_count = sum(w.hidden is True for w in self.words)
         unverified_count = word_count - verified_count
         print
         print("Database Status [{}]:".format(self.db_path))
         print("Number of Words: {}".format(word_count))
-        print("Valid Words: {}".format(valid_count))
+        print("Playable Words: {}".format(valid_count))
         print("Verified Words: {}".format(verified_count))
         print("Unverified Words: {}".format(unverified_count))
         print("Hidden Words: {}".format(hidden_count))
@@ -143,25 +143,25 @@ class Engine:
         print("Generating Puzzles to CSV. Please wait...")
 
         self.make_level(count=1, block_def=[
-            BlockDef(tier=3, count=15),
-            BlockDef(tier=4, count=5),
+            BlockDef(tier=3, count=7),
+            BlockDef(tier=4, count=3),
         ])
 
         self.make_level(count=9, block_def=[
-            BlockDef(tier=4, count=15),
-            BlockDef(tier=5, count=5),
+            BlockDef(tier=4, count=7),
+            BlockDef(tier=5, count=3),
         ])
 
         self.make_level(count=15, block_def=[
-            BlockDef(tier=5, count=20, n_min=4)
+            BlockDef(tier=5, count=10, n_min=4)
         ])
 
         self.make_level(count=10, block_def=[
-            BlockDef(tier=6, count=20, n_min=4)
+            BlockDef(tier=6, count=10, n_min=4)
         ])
 
         self.make_level(count=5, block_def=[
-            BlockDef(tier=6, count=20, n_min=5, percentile=0.15)
+            BlockDef(tier=6, count=10, n_min=5, percentile=0.15)
         ])
 
         self.generator.write_used_keys()

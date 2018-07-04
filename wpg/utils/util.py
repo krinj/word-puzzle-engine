@@ -25,11 +25,15 @@ def strip(string, char):
     return string
 
 
-def lexi_collisions(first_bucket, second_bucket):
+def lexi_collisions(first_bucket, second_bucket, n_min=0):
+
     # Find the number of duplicate words in the two words.
     collisions = 0
-    for word1 in first_bucket.words:
-        for word2 in second_bucket.words:
+    words1 = first_bucket.get_word_values(n_min)
+    words2 = second_bucket.get_word_values(n_min)
+
+    for word1 in words1:
+        for word2 in words2:
             if word1 == word2:
                 collisions += 1
     return collisions

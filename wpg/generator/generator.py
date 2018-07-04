@@ -86,7 +86,7 @@ class Generator:
                 if key in used_keys:
                     tier.buckets[key].active = False
 
-    def make_puzzle_block(self, name, block_defs, block_id=0, collision_cap=10, batch=10, cadence_split=0.8):
+    def make_puzzle_block(self, name, block_defs, block_id=0, collision_cap=100, batch=10, cadence_split=0.8):
         if block_defs is None or len(block_defs) == 0:
             raise Exception("Must send in a dict for block_def")
         if block_id == 0:
@@ -105,9 +105,9 @@ class Generator:
                 puzzles.append(puzzle)
                 print("\tPuzzle | K: {} W: {} GS: {}".format(
                     puzzle.key, len(puzzle.words), puzzle.generator_score))
-                collision_buckets.insert(0, bucket)
+                collision_buckets.append(bucket)
                 if len(collision_buckets) > collision_cap:
-                    collision_buckets.pop()
+                    collision_buckets.pop(0)
         print("")
 
         sorted_puzzles = sorted(puzzles, key=lambda x: x.score)
@@ -164,6 +164,8 @@ class Generator:
                 word_joined = " ".join([unicode(w).encode("utf-8") for w in hidden_words])
                 word_joined = "Hidden Words: {}".format(word_joined)
                 csv_writer.writerow([word_joined])
+                csv_writer.writerow(["Collision Score: {}".format(puzzle.collision_score)])
+                csv_writer.writerow(["Puzzle Score: {}".format(puzzle.generator_score)])
 
                 # New line.
                 csv_writer.writerow(["\n"])
@@ -196,37 +198,42 @@ class Generator:
     def make_single_puzzle_sans_collision(self, word_length=5, percentile=0.5, buckets=None, batch=10, n_min=0):
         # Generate [batch] number of random puzzles, and pick the one with the least collisions to the words.
 
+        skip_collision = False
         if buckets is None or len(buckets) == 0:
-            return self.make_single_puzzle(word_length, percentile, n_min)
+            skip_collision = True
+
 
         # Create n puzzles and find the score for each one.
-        best_score = 9999
+        best_collision_score = 9999
+        best_puzzle_score = 0
         best_bucket = 0
         collision_factor = 1.0
         collision_decay = 1.0
 
         for i in range(batch):
-            bucket_score = 0
+
+            bucket_collision_score = 0
             bucket = self.get_random_bucket(word_length, percentile, n_min)
 
             if bucket is None:
                 raise Exception("Error: Unable to find a bucket with {} length words.".format(word_length))
 
-            # if bucket.n_min_score(n_min) < 1:
-            #     # Add a high score for shitty words.
-            #     bucket_score += 1000
+            bucket_puzzle_score = bucket.n_min_score(n_min)
 
-            for cmp_bucket in buckets:
-                bucket_score += util.lexi_collisions(cmp_bucket, bucket) * collision_factor
-                collision_factor *= collision_decay
+            if not skip_collision:
+                for cmp_bucket in buckets:
+                    bucket_collision_score += util.lexi_collisions(cmp_bucket, bucket, n_min) * collision_factor
+                    collision_factor *= collision_decay
 
-            if bucket_score < best_score:
+            if bucket_collision_score < best_collision_score or \
+                    (bucket_collision_score == best_collision_score and bucket_puzzle_score > best_puzzle_score):
                 best_bucket = bucket
-                best_score = bucket_score
+                best_collision_score = bucket_collision_score
+                best_puzzle_score = bucket_puzzle_score
 
         best_bucket.active = False
         puzzle = Puzzle(best_bucket.key, best_bucket.get_word_values(n_min), best_bucket.sort_score(n_min),
-                        collision_score=best_score, generator_score=best_bucket.n_min_score(n_min))
+                        collision_score=best_collision_score, generator_score=best_bucket.n_min_score(n_min))
         return puzzle, best_bucket
 
     def make_single_puzzle(self, word_length=5, percentile=0.3, n_min=0):
