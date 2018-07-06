@@ -13,10 +13,16 @@ class Bucket:
         self.word_counts = [0] * 10
 
     def n_min_score(self, n_min=0):
+
         penalty = 0
+
         excess = self.word_counts[n_min] - self.MAX_WORDS
         if excess > 0:
             penalty = int(2 ** (len(self.key) - 2) * excess * 1.5)
+
+        # Hack: If no non-hidden words, penalize the score heavily.
+        if len(self.words) == 0:
+            penalty += 50
 
         return self.tier_scores[n_min] - penalty
 
