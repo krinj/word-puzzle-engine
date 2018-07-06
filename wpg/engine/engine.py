@@ -4,22 +4,26 @@ from wpg.data.data_manager import DataManager
 from wpg.data.file_splitter import FileSplitter
 from wpg.engine.editor import Editor
 from wpg.generator.block_def import BlockDef
+from wpg.generator.bucket import Bucket
 from wpg.generator.generator import Generator
 from wpg.interface.color import Color
 
 
 class Engine:
 
-    K_PUZZLE_BATCH = 25
+    K_PUZZLE_BATCH = 50
     K_WRITE_UNVERIFIED = True  # Will write words into the output dict even if it is unverified.
+    K_TIER_FALLOFF_COUNT = 50
+    K_BUCKET_IDEAL_SIZE = 12  # Ideal number of words for a puzzle.
 
     def __init__(self):
 
         # Logic Modules
+        Bucket.MAX_WORDS = self.K_BUCKET_IDEAL_SIZE
         self.data_manager = DataManager()
         self.editor = Editor()
-        self.generator = Generator()
-        self.version = 4.1
+        self.generator = Generator(self.K_TIER_FALLOFF_COUNT)
+        self.version = 5.0
 
         # State Data
         self.db_path = None
@@ -143,25 +147,44 @@ class Engine:
         print("Generating Puzzles to CSV. Please wait...")
 
         self.make_level(count=1, block_def=[
-            BlockDef(tier=3, count=7),
-            BlockDef(tier=4, count=3),
+            BlockDef(tier=3, count=15),
+            BlockDef(tier=4, count=5),
         ])
 
-        self.make_level(count=9, block_def=[
-            BlockDef(tier=4, count=7),
-            BlockDef(tier=5, count=3),
-        ])
-
-        self.make_level(count=15, block_def=[
-            BlockDef(tier=5, count=10, n_min=4)
-        ])
-
-        self.make_level(count=10, block_def=[
-            BlockDef(tier=6, count=10, n_min=4)
+        self.make_level(count=4, block_def=[
+            BlockDef(tier=4, count=15),
+            BlockDef(tier=5, count=5),
         ])
 
         self.make_level(count=5, block_def=[
-            BlockDef(tier=6, count=10, n_min=5, percentile=0.15)
+            BlockDef(tier=4, count=3),
+            BlockDef(tier=5, count=15),
+            BlockDef(tier=6, count=2)
+        ])
+
+        self.make_level(count=5, block_def=[
+            BlockDef(tier=5, count=15),
+            BlockDef(tier=6, count=5)
+        ])
+
+        self.make_level(count=5, block_def=[
+            BlockDef(tier=5, count=10),
+            BlockDef(tier=6, count=7),
+            BlockDef(tier=6, count=3, n_min=5, percentile=0.15)
+        ])
+
+        self.make_level(count=10, block_def=[
+            BlockDef(tier=5, count=5),
+            BlockDef(tier=6, count=15),
+            BlockDef(tier=6, count=3, n_min=5, percentile=0.15),
+            BlockDef(tier=7, count=2, n_min=5, percentile=0.15)
+        ])
+
+        self.make_level(count=10, block_def=[
+            BlockDef(tier=6, count=5, n_min=0, percentile=0.15),
+            BlockDef(tier=6, count=5, n_min=5, percentile=0.15),
+            BlockDef(tier=7, count=5, n_min=0, percentile=0.15),
+            BlockDef(tier=7, count=5, n_min=5, percentile=0.15)
         ])
 
         self.generator.write_used_keys()

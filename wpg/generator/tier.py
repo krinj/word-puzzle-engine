@@ -37,11 +37,10 @@ class Tier:
 
 class TierManager:
 
-    K_TIER_FALLOFF_COUNT = 20  # If a bucket has this many letters already, it will ignore lesser tiers.
-
-    def __init__(self, n_tiers=9):
+    def __init__(self, n_tiers=9, tier_falloff_count=20):
         self.tiers = []
         self.n_tiers = n_tiers
+        self.tier_falloff_count = tier_falloff_count
         self.create_tiers()
 
     def reset(self):
@@ -53,9 +52,9 @@ class TierManager:
         for i in range(self.n_tiers):
             tier = Tier(i)
             if i > 6:
-                tier.min_sub_tier_size = 5
+                tier.min_sub_tier_size = 3
             elif i > 5:
-                tier.min_sub_tier_size = 4
+                tier.min_sub_tier_size = 3
             elif i > 3:
                 tier.min_sub_tier_size = 3
             else:
@@ -98,7 +97,7 @@ class TierManager:
                 for j in range(i - 1, tier.min_sub_tier_size - 1, -1):
 
                     # Break this bucket off if it is already populated enough.
-                    if big_bucket.n_min_score(0) >= self.K_TIER_FALLOFF_COUNT:
+                    if big_bucket.n_min_score(0) >= self.tier_falloff_count:
                         break
 
                     lower_tier = self.tiers[j]

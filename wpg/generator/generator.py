@@ -16,8 +16,8 @@ class PuzzleBlock:
 
 
 class Generator:
-    def __init__(self):
-        self.tier_manager = TierManager(9)
+    def __init__(self, tier_falloff_count=20):
+        self.tier_manager = TierManager(9, tier_falloff_count)
         self.block_id = 0
         self.output_dir = None
         self._puzzle_index = 0
@@ -201,7 +201,6 @@ class Generator:
         skip_collision = False
         if buckets is None or len(buckets) == 0:
             skip_collision = True
-
 
         # Create n puzzles and find the score for each one.
         best_collision_score = 9999

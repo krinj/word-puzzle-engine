@@ -1,6 +1,6 @@
 class Bucket:
 
-    MAX_LETTERS = 10  # Beyond this and the score will suffer.
+    MAX_WORDS = 10  # Beyond this and the score will suffer.
 
     def __init__(self, key):
         self.key = key
@@ -14,13 +14,9 @@ class Bucket:
 
     def n_min_score(self, n_min=0):
         penalty = 0
-        excess = self.word_counts[n_min] - self.MAX_LETTERS
+        excess = self.word_counts[n_min] - self.MAX_WORDS
         if excess > 0:
-            penalty = len(self.key) * excess * 2
-
-        # if len(self.key) > 3 and self.word_counts[n_min] < 3:
-        #     # This puzzle isn't long enough.
-        #     return -10
+            penalty = int(2 ** (len(self.key) - 2) * excess * 1.5)
 
         return self.tier_scores[n_min] - penalty
 
@@ -42,10 +38,11 @@ class Bucket:
                 self._add_word_score(word)
 
     def _add_word_score(self, word):
-        score = len(word.literal)
+        n_letters = len(word.literal)
+        score = 2 ** (n_letters - 2)
 
         # Add a cumulative score for each tier.
-        for i in range(0, score + 1):
+        for i in range(0, n_letters + 1):
             self.tier_scores[i] += score
             self.word_counts[i] += 1
 
