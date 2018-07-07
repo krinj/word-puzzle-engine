@@ -175,7 +175,7 @@ class Engine:
 
         self.make_level(count=10, block_def=[
             BlockDef(tier=5, count=5),
-            BlockDef(tier=6, count=15),
+            BlockDef(tier=6, count=10),
             BlockDef(tier=6, count=3, n_min=5, percentile=0.15),
             BlockDef(tier=7, count=2, n_min=5, percentile=0.15)
         ])
