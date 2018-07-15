@@ -169,22 +169,22 @@ class Engine:
 
         self.make_level(count=5, block_def=[
             BlockDef(tier=5, count=10),
-            BlockDef(tier=6, count=7),
-            BlockDef(tier=6, count=3, n_min=5, percentile=0.15)
+            BlockDef(tier=6, count=8),
+            BlockDef(tier=6, count=2, n_min=5, percentile=0.15)
         ])
 
         self.make_level(count=10, block_def=[
             BlockDef(tier=5, count=5),
             BlockDef(tier=6, count=10),
             BlockDef(tier=6, count=3, n_min=5, percentile=0.15),
-            BlockDef(tier=7, count=2, n_min=5, percentile=0.15)
+            BlockDef(tier=7, count=2, n_min=0, percentile=0.15)
         ])
 
-        self.make_level(count=10, block_def=[
-            BlockDef(tier=6, count=5, n_min=0, percentile=0.15),
-            BlockDef(tier=6, count=5, n_min=5, percentile=0.15),
-            BlockDef(tier=7, count=5, n_min=0, percentile=0.15),
-            BlockDef(tier=7, count=5, n_min=5, percentile=0.15)
+        self.make_level(count=20, block_def=[
+            BlockDef(tier=6, count=7, n_min=0, percentile=0.15),
+            BlockDef(tier=6, count=3, n_min=5, percentile=0.15),
+            BlockDef(tier=7, count=7, n_min=0, percentile=0.15),
+            BlockDef(tier=7, count=3, n_min=5, percentile=0.15)
         ])
 
         self.generator.write_used_keys()

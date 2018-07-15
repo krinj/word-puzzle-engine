@@ -11,7 +11,11 @@ class Editor:
 
     def add(self, words, literals=None):
         for literal in literals:
-            self.add_single(words, literal.lower())
+            if ".csv" in literal:
+                sub_literals = DataManager.read_csv(literal)
+                self.add(words, sub_literals)
+            else:
+                self.add_single(words, literal.lower())
 
     @staticmethod
     def add_single(words, literal):
